@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projects - Zhong Wen Aaron Lu</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>Zhong Wen Aaron Lu</h1>
+    </header>
+    
+    <nav>
+        <ul>
+            <li><a href="index.html">About Me</a></li>
+            <li><a href="work-experience.html">Work Experience</a></li>
+            <li><a href="projects.html" class="active">Projects</a></li>
+            <li><a href="contact.html">Contact</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <section class="projects">
+            <h2>My Projects</h2>
+            
+            <article class="project">
+                <h3>Probabilistic AI Agent for Battleship</h3>
+                <h4>Game Logistics with Java | Jan 2024 – May 2024</h4>
+                <ul>
+                    <li>Developed a probabilistic AI agent that generates and dynamically updates a heat map of ship placement probabilities based on the remaining enemy ships and the current game state.</li>
+                    <li>Implemented strategic move selection algorithms that consider adjacent squares, cardinal directions, and previous move outcomes to prioritize high-probability target coordinates.</li>
+                    <li>Created an adaptive learning system that reasons about different ship configurations, adjusting probabilities and weights accordingly while efficiently exploring the board.</li>
+                </ul>
+                <p><strong>Technologies used:</strong> Java, Probability Theory, AI Algorithms</p>
+            </article>
+
+            <article class="project">
+                <h3>Tetris Game with AI Bot</h3>
+                <h4>Reinforcement Learning-Based Training Agent with Java | Jan 2024 – May 2024</h4>
+                <ul>
+                    <li>Implemented a TetrisAgent using Q-Learning algorithm and neural networks to learn and predict best actions depending on different game states.</li>
+                    <li>Designed a neural network with two hidden layers to output a q-value representing the score of the most optimal action given the feature vector of the game state.</li>
+                    <li>Created a reward function based on height, line completions, holes, and blockades for exploring and exploiting the next best action of the given game state.</li>
+                </ul>
+                <p><strong>Technologies used:</strong> Java, Q-Learning, Neural Networks, Reinforcement Learning</p>
+            </article>
+
+            <article class="project">
+                <h3>Fake News Detection Project</h3>
+                <h4>Machine Learning with Python Notebook | Jan 2024 – May 2024</h4>
+                <ul>
+                    <li>Developed a machine learning system utilizing logistic regression and natural language processing techniques to accurately classify news articles as "real" or "fake".</li>
+                    <li>Performed data preprocessing, including cleaning, normalization, and text vectorization using TF-IDF.</li>
+                    <li>Utilized a Kaggle dataset consisting of 20,800 news articles, with an 80-20 train-test split, achieving high precision, recall, and F1-score.</li>
+                </ul>
+                <p><strong>Technologies used:</strong> Python, Scikit-learn, NLTK, Pandas, NumPy, Logistic Regression, NLP</p>
+            </article>
+
+            <article class="project">
+                <h3>Health and Nutrition App (Nutrisistant)</h3>
+                <h4>Website App Group Project | Sep 2023 – Dec 2023</h4>
+                <ul>
+                    <li>Developed an app that reports nutritional facts about food items inputted, sourcing data from the Spoonacular API.</li>
+                    <li>Implemented backend database, Google authentication, and API routes from front to back.</li>
+                    <li>Utilized React.js, HTML, and CSS for the frontend, and Node.js with Axios for backend API calls and data transfer.</li>
+                </ul>
+                <p><strong>Technologies used:</strong> React.js, HTML, CSS, Node.js, Axios, MongoDB, Google Authentication API, Spoonacular API</p>
+            </article>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 Zhong Wen Aaron Lu</p>
+    </footer>
+</body>
+</html>
