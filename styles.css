@@ -37,6 +37,7 @@ main {
   padding: 20px;
   max-width: 800px;
   margin: 0 auto;
+  padding-bottom: 60px; /* Add padding to the bottom to prevent footer overlap */
 }
 
 h1 {
@@ -64,5 +65,8 @@ footer {
   color: white;
   text-align: center;
   padding: 10px;
-  margin-top: auto;
+  position: fixed; /* Change to fixed position */
+  bottom: 0; /* Stick to the bottom */
+  width: 100%; /* Full width */
+  z-index: 100; /* Ensure it's above other content */
 }
