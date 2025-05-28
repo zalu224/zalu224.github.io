@@ -40,6 +40,57 @@ main {
   padding-bottom: 60px; /* Add padding to the bottom to prevent footer overlap */
 }
 
+/* About Me page specific styles */
+.about-container {
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+  max-width: 100%;
+}
+
+.about-content {
+  flex: 2;
+}
+
+.about-image {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  min-width: 200px;
+}
+
+.about-image img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  max-height: 350px;
+  object-fit: cover;
+}
+
+/* Responsive design for About Me page */
+@media (max-width: 768px) {
+  main {
+    max-width: 95%;
+  }
+  
+  .about-container {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+  }
+  
+  .about-image {
+    order: -1; /* Move image to top on mobile */
+    margin-bottom: 1rem;
+  }
+  
+  .about-image img {
+    max-width: 250px;
+    max-height: 250px;
+  }
+}
+
 h1 {
   color: #333;
 }
