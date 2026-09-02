@@ -111,55 +111,136 @@
     }, Math.max(12, Math.round(500 / text.length)));
   }
 
-  function initNameTag() {
+  function initLanyard() {
+    var root = document.getElementById('lanyard');
     var tag = document.getElementById('name-tag');
-    if (!tag) { return null; }
+    var path = document.getElementById('lanyard-path');
+    var hero = document.getElementById('hero');
+    var stage = document.getElementById('card-stage');
+    if (!root || !tag || !path || !hero) { return null; }
 
+    var SEGMENT = 16;
+    var rope = null;
+    var raf = 0;
     var dragging = false;
-    var originX = 0, originY = 0;
-    var dx = 0, dy = 0;
-    var lastX = 0, lastMoveTime = 0, velocityX = 0;
+    var dragPoint = null;
+    var grabOffset = { x: 0, y: 0 };
+    var dropped = false;
 
-    function paint(tilt) {
-      tag.style.transform = 'translate3d(' + dx + 'px,' + dy + 'px,0) rotate(' + tilt + 'deg)';
+    // Hang the badge over the card stage, so it never crosses the name column.
+    function layout() {
+      var heroRect = hero.getBoundingClientRect();
+      var box = stage ? stage.getBoundingClientRect() : heroRect;
+      return {
+        x: box.left - heroRect.left + box.width / 2,
+        y: 0,
+        restY: Math.max(140, box.top - heroRect.top + 56)
+      };
+    }
+
+    function toHero(event) {
+      var heroRect = hero.getBoundingClientRect();
+      return { x: event.clientX - heroRect.left, y: event.clientY - heroRect.top };
+    }
+
+    function render() {
+      var pts = rope.points;
+      var d = 'M' + pts[0].x.toFixed(1) + ',' + pts[0].y.toFixed(1);
+      for (var i = 1; i < pts.length; i++) {
+        d += ' L' + pts[i].x.toFixed(1) + ',' + pts[i].y.toFixed(1);
+      }
+      path.setAttribute('d', d);
+
+      var e = rope.end();
+      tag.style.transform = 'translate3d(' + e.x.toFixed(1) + 'px,' + e.y.toFixed(1) +
+        'px,0) rotate(' + rope.angleDeg().toFixed(2) + 'deg)';
+    }
+
+    function frame() {
+      rope.step(dragPoint);
+      render();
+      if (dragging || rope.maxSpeed() > 0.05) {
+        raf = requestAnimationFrame(frame);
+      } else {
+        raf = 0;
+      }
+    }
+
+    function run() {
+      if (!raf && rope) { raf = requestAnimationFrame(frame); }
+    }
+
+    function restStatic() {
+      // Reduced motion: no swinging. Hang it straight, still draggable.
+      var at = layout();
+      var x = dragPoint ? dragPoint.x : at.x;
+      var y = dragPoint ? dragPoint.y : at.restY;
+      path.setAttribute('d', 'M' + at.x + ',' + at.y + ' L' + x + ',' + y);
+      tag.style.transform = 'translate3d(' + x + 'px,' + y + 'px,0)';
     }
 
     tag.addEventListener('pointerdown', function (event) {
+      if (!dropped) { return; }
       dragging = true;
-      originX = event.clientX - dx;
-      originY = event.clientY - dy;
-      lastX = event.clientX;
-      lastMoveTime = Date.now();
-      velocityX = 0;
       tag.classList.add('is-dragging');
       tag.setPointerCapture(event.pointerId);
+      var at = toHero(event);
+      var e = rope ? rope.end() : { x: at.x, y: at.y };
+      grabOffset = { x: at.x - e.x, y: at.y - e.y };
+      dragPoint = { x: e.x, y: e.y };
+      if (rope) { run(); } else { restStatic(); }
     });
 
     tag.addEventListener('pointermove', function (event) {
       if (!dragging) { return; }
-      var now = Date.now();
-      var elapsed = Math.max(1, now - lastMoveTime);
-      velocityX = (event.clientX - lastX) / elapsed * 16;
-      lastX = event.clientX;
-      lastMoveTime = now;
-      dx = event.clientX - originX;
-      dy = event.clientY - originY;
-      paint(Core.tiltFromVelocity(velocityX, 12));
+      var at = toHero(event);
+      dragPoint = { x: at.x - grabOffset.x, y: at.y - grabOffset.y };
+      if (!rope) { restStatic(); }
     });
 
     function release(event) {
       if (!dragging) { return; }
       dragging = false;
+      dragPoint = null;
       tag.classList.remove('is-dragging');
       if (tag.hasPointerCapture && tag.hasPointerCapture(event.pointerId)) {
         tag.releasePointerCapture(event.pointerId);
       }
+      if (rope) { run(); } else { restStatic(); }
     }
     tag.addEventListener('pointerup', release);
     tag.addEventListener('pointercancel', release);
 
+    global.addEventListener('resize', function () {
+      if (!rope || dragging) { return; }
+      var at = layout();
+      rope.setAnchor(at.x, at.y);
+      run();
+    }, { passive: true });
+
     return {
-      drop: function () { tag.classList.add('is-dropped'); }
+      drop: function () {
+        if (dropped) { return; }
+        dropped = true;
+        root.classList.add('is-dropped');
+
+        var hint = document.getElementById('drag-hint');
+        if (hint) { hint.textContent = 'Drag the badge'; }
+
+        var at = layout();
+        if (prefersReducedMotion()) {
+          restStatic();
+          return;
+        }
+        rope = Core.createRope({
+          x: at.x,
+          y: at.y,
+          segments: Math.max(6, Math.round((at.restY - at.y) / SEGMENT)),
+          segmentLength: SEGMENT
+        });
+        run();
+      },
+      isDropped: function () { return dropped; }
     };
   }
 
@@ -213,8 +294,6 @@
       }, 600);
 
       setTimeout(function () {
-        var hint = document.getElementById('drag-hint');
-        if (hint) { hint.style.opacity = '0'; }
         if (readout) {
           typeOut(readout, 'Access granted · Welcome', function () {
             setTimeout(function () { if (onAccepted) { onAccepted(); } }, 500);
@@ -429,11 +508,11 @@
     renderWork();
     renderHome();
     var lock = initGate();
-    var nameTag = initNameTag();
+    var lanyard = initLanyard();
     initCard(function () {
       if (lock) { lock.unlock('swipe'); }
     }, function () {
-      if (nameTag) { nameTag.drop(); }
+      if (lanyard) { lanyard.drop(); }
     });
     initReveals();
     initCounters();
@@ -449,7 +528,7 @@
     renderWork: renderWork,
     renderHome: renderHome,
     initCard: initCard,
-    initNameTag: initNameTag,
+    initLanyard: initLanyard,
     initGate: initGate,
     initCounters: initCounters,
     initParallax: initParallax,

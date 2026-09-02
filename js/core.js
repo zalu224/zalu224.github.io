@@ -218,6 +218,102 @@
     '</li>';
   }
 
+  // A verlet rope: a chain of points held together by distance constraints.
+  // points[0] is pinned to the anchor; the last point carries the badge. Passing
+  // a drag position to step() pins the free end there instead of letting it fall.
+  function createRope(options) {
+    var opts = options || {};
+    var count = Math.max(2, opts.segments || 12);
+    var segmentLength = opts.segmentLength || 16;
+    var gravity = opts.gravity === undefined ? 0.9 : opts.gravity;
+    var friction = opts.friction === undefined ? 0.97 : opts.friction;
+    var iterations = Math.max(1, opts.iterations || 14);
+    var anchorX = opts.x || 0;
+    var anchorY = opts.y || 0;
+
+    // Start collapsed at the anchor so the rope unrolls downward into view.
+    // The tiny spread matters: perfectly coincident points give the distance
+    // solver no direction to separate along, and the rope never unfurls.
+    var points = [];
+    for (var n = 0; n < count; n++) {
+      var sx = anchorX + (n % 2 === 0 ? 0.4 : -0.4);
+      var sy = anchorY + n * 0.8;
+      points.push({ x: sx, y: sy, px: sx, py: sy });
+    }
+
+    function step(drag) {
+      var i, p, vx, vy, a, b, dx, dy, dist, diff, ox, oy;
+
+      for (i = 1; i < points.length; i++) {
+        p = points[i];
+        vx = (p.x - p.px) * friction;
+        vy = (p.y - p.py) * friction;
+        p.px = p.x;
+        p.py = p.y;
+        p.x += vx;
+        p.y += vy + gravity;
+      }
+
+      for (var k = 0; k < iterations; k++) {
+        points[0].x = anchorX;
+        points[0].y = anchorY;
+
+        for (i = 0; i < points.length - 1; i++) {
+          a = points[i];
+          b = points[i + 1];
+          dx = b.x - a.x;
+          dy = b.y - a.y;
+          dist = Math.sqrt(dx * dx + dy * dy) || 0.0001;
+          diff = (segmentLength - dist) / dist * 0.5;
+          ox = dx * diff;
+          oy = dy * diff;
+          if (i !== 0) { a.x -= ox; a.y -= oy; }
+          b.x += ox;
+          b.y += oy;
+        }
+
+        if (drag) {
+          var last = points[points.length - 1];
+          last.x = drag.x;
+          last.y = drag.y;
+        }
+      }
+
+      return points;
+    }
+
+    // Rotation in CSS degrees for something hanging off the free end: 0 when
+    // the rope hangs straight down, negative when the end swings right.
+    function angleDeg() {
+      var n = points.length;
+      var a = points[n - 2];
+      var b = points[n - 1];
+      return Math.atan2(-(b.x - a.x), b.y - a.y) * 180 / Math.PI;
+    }
+
+    function maxSpeed() {
+      var most = 0;
+      for (var i = 1; i < points.length; i++) {
+        var p = points[i];
+        var vx = p.x - p.px;
+        var vy = p.y - p.py;
+        var speed = Math.sqrt(vx * vx + vy * vy);
+        if (speed > most) { most = speed; }
+      }
+      return most;
+    }
+
+    return {
+      points: points,
+      segmentLength: segmentLength,
+      step: step,
+      angleDeg: angleDeg,
+      maxSpeed: maxSpeed,
+      end: function () { return points[points.length - 1]; },
+      setAnchor: function (x, y) { anchorX = x; anchorY = y; }
+    };
+  }
+
   var api = {
     clamp: clamp,
     distance: distance,
@@ -242,7 +338,8 @@
     bulletsHtml: bulletsHtml,
     projectCardHtml: projectCardHtml,
     workEntryHtml: workEntryHtml,
-    courseworkRowHtml: courseworkRowHtml
+    courseworkRowHtml: courseworkRowHtml,
+    createRope: createRope
   };
 
   if (typeof module !== 'undefined' && module.exports) { module.exports = api; }

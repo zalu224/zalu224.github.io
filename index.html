@@ -26,7 +26,7 @@
       <div class="scan-line"></div>
     </div>
 
-    <div class="card-stage">
+    <div class="card-stage" id="card-stage">
       <button type="button" class="id-card" id="id-card"
               aria-label="Access card. Drag it to the reader, or press Enter, to enter the site.">
         <span class="id-card-head mono"><span>Access Card</span><span>USC &middot; Viterbi</span></span>
@@ -49,14 +49,20 @@
 
       <p class="drag-hint eyebrow" id="drag-hint">Drag the card</p>
       <p class="readout mono" id="readout" role="status" aria-live="polite"></p>
-
-      <div class="name-tag" id="name-tag" aria-hidden="true">
-        <img class="name-tag-photo" src="img/image.png" alt="" width="60" height="60">
-        <span class="name-tag-name mono">Aaron Lu</span>
-        <span class="name-tag-role mono">Technical Product Manager</span>
-      </div>
     </div>
 
+
+    <div class="lanyard" id="lanyard" aria-hidden="true">
+      <svg class="lanyard-cord" preserveAspectRatio="none"><path id="lanyard-path" /></svg>
+      <div class="name-tag" id="name-tag">
+        <span class="name-tag-clip"></span>
+        <span class="name-tag-head mono">Access Granted</span>
+        <img class="name-tag-photo" src="img/image.png" alt="" width="64" height="64">
+        <span class="name-tag-name serif">Aaron Lu</span>
+        <span class="name-tag-role mono">Technical Product Manager</span>
+        <span class="name-tag-foot mono">ID 2025&middot;0506</span>
+      </div>
+    </div>
 
     <div class="scroll-cue" aria-hidden="true">
       <span>Scroll</span>
