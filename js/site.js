@@ -270,11 +270,11 @@
   function animateCount(node) {
     var spec = Core.parseCountable(node.textContent);
     if (!spec) { return; }
-    var start = 0;
+    var start = null;
     var duration = 900;
 
     function frame(now) {
-      if (!start) { start = now; }
+      if (start === null) { start = now; }
       var t = Core.clamp((now - start) / duration, 0, 1);
       node.textContent = Core.formatCount(spec.value * Core.easeOutCubic(t), spec);
       if (t < 1) { requestAnimationFrame(frame); }
