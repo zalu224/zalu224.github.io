@@ -1,91 +1,79 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Projects - Zhong Wen Aaron Lu</title>
-    <link rel="stylesheet" href="styles.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Projects — Aaron Lu</title>
+<meta name="description" content="Products and projects by Aaron Lu — Pokécha, OFYE, and machine learning work.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@300;400;500;600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <header>
-        <h1>Aaron Lu</h1>
-    </header>
-    
-    <nav>   
+<nav class="nav">
+  <a href="index.html">Home</a>
+  <a href="work.html">Work</a>
+  <a href="projects.html" aria-current="page">Projects</a>
+  <a href="contact.html">Contact</a>
+</nav>
+
+<main class="page-main">
+  <header class="page-head column">
+    <p class="eyebrow">Selected work</p>
+    <h1>Projects</h1>
+    <p>Products I have shipped end to end, and the machine learning work behind them.</p>
+  </header>
+
+  <div class="column">
+    <section>
+      <header class="section-head">
+        <p class="eyebrow">Products</p>
+        <h2>Live and in use</h2>
+      </header>
+      <div class="card-grid stagger" id="products"></div>
+    </section>
+
+    <section>
+      <header class="section-head">
+        <p class="eyebrow">Projects</p>
+        <h2>Machine learning &amp; systems</h2>
+      </header>
+      <div class="card-grid stagger" id="project-list"></div>
+    </section>
+
+    <noscript>
+      <div class="noscript-note">
+        <p>This page renders its content with JavaScript. Direct links:</p>
         <ul>
-            <li><a href="index.html">About Me</a></li>
-            <li><a href="work-experience.html">Work Experience</a></li>
-            <li><a href="projects.html" >Projects</a></li>
-            <li><a href="contact.html">Contact</a></li>
-            <li><a href="assignments.html">Assignments</a></li>
-
+          <li><a href="https://pokecha.xyz">Pok&eacute;cha</a> &mdash; graded-card pack openings with published odds</li>
+          <li><a href="https://ofye.org">OFYE Group</a> &mdash; tiered membership and education platform</li>
+          <li>NYC Urban Air Quality Analysis, Fake News Detection, Battleship AI, Tetris Q-Learning bot, Nutrisistant</li>
+          <li><a href="https://github.com/zalu224">All repositories on GitHub</a></li>
         </ul>
-    </nav>
+      </div>
+    </noscript>
 
-    <main>
-        <section class="projects">
-            <h2>My Projects</h2>
-            
-            <article class="project">
-                <h3>NYC Urban Forestry Air Quality Analysis</h3>
-                <h4>Data Analyst in Python | Sept 2024 – Dec 2024</h4>
-                <ul>
-                    <li>Led a comprehensive analysis of the relationship between urban tree distribution and air quality across NYC using 2015 Street Tree Census and pollution datasets.</li>
-                    <li>Built a full data processing pipeline with cleaning, feature engineering, and geographic integration of over 666,000 tree records and multi-source pollution data.</li>
-                    <li>Developed interactive Flask web apps for heatmap visualizations and data exploration, supporting analysis of pollutant patterns and tree health across boroughs.</li>
-                    <li>Discovered significant correlations between tree size and reduced PM2.5 levels, with trees ≥60 inches diameter linked to 30% lower pollution—supporting policy recommendations.</li>
-                </ul>
-                <p><strong>Technologies used:</strong> Python, Flask, Pandas</p>
-            </article>
+    <section id="coursework">
+      <header class="section-head">
+        <p class="eyebrow">Coursework &mdash; CS506</p>
+        <h2>Boston University</h2>
+        <p>Assignments from CS506, Data Science Tools and Applications.</p>
+      </header>
+      <ul class="coursework-grid" id="coursework-list"></ul>
+    </section>
+  </div>
+</main>
 
-            <article class="project">
-                <h3>Probabilistic AI Agent for Battleship</h3>
-                <h4>Game Logistics with Java | Jan 2024 – May 2024</h4>
-                <ul>
-                    <li>Developed a probabilistic AI agent that generates and dynamically updates a heat map of ship placement probabilities based on the remaining enemy ships and the current game state.</li>
-                    <li>Implemented strategic move selection algorithms that consider adjacent squares, cardinal directions, and previous move outcomes to prioritize high-probability target coordinates.</li>
-                    <li>Created an adaptive learning system that reasons about different ship configurations, adjusting probabilities and weights accordingly while efficiently exploring the board.</li>
-                </ul>
-                <p><strong>Technologies used:</strong> Java, Probability Theory, AI Algorithms</p>
-            </article>
+<footer class="site-footer">
+  <div>
+    <span>&copy; 2026 Zhong Wen Aaron Lu</span>
+    <span>Built by hand</span>
+  </div>
+</footer>
 
-            <article class="project">
-                <h3>Tetris Game with AI Bot</h3>
-                <h4>Reinforcement Learning-Based Training Agent with Java | Jan 2024 – May 2024</h4>
-                <ul>
-                    <li>Implemented a TetrisAgent using Q-Learning algorithm and neural networks to learn and predict best actions depending on different game states.</li>
-                    <li>Designed a neural network with two hidden layers to output a q-value representing the score of the most optimal action given the feature vector of the game state.</li>
-                    <li>Created a reward function based on height, line completions, holes, and blockades for exploring and exploiting the next best action of the given game state.</li>
-                </ul>
-                <p><strong>Technologies used:</strong> Java, Q-Learning, Neural Networks, Reinforcement Learning</p>
-            </article>
-
-            <article class="project">
-                <h3>Fake News Detection Project</h3>
-                <h4>Machine Learning with Python Notebook | Jan 2024 – May 2024</h4>
-                <ul>
-                    <li>Developed a machine learning system utilizing logistic regression and natural language processing techniques to accurately classify news articles as "real" or "fake".</li>
-                    <li>Performed data preprocessing, including cleaning, normalization, and text vectorization using TF-IDF.</li>
-                    <li>Utilized a Kaggle dataset consisting of 20,800 news articles, with an 80-20 train-test split, achieving high precision, recall, and F1-score.</li>
-                </ul>
-                <p><strong>Technologies used:</strong> Python, Scikit-learn, NLTK, Pandas, NumPy, Logistic Regression, NLP</p>
-            </article>
-
-            <article class="project">
-                <h3>Health and Nutrition App (Nutrisistant)</h3>
-                <h4>Website App Group Project | Sep 2023 – Dec 2023</h4>
-                <ul>
-                    <li>Developed an app that reports nutritional facts about food items inputted, sourcing data from the Spoonacular API.</li>
-                    <li>Implemented backend database, Google authentication, and API routes from front to back.</li>
-                    <li>Utilized React.js, HTML, and CSS for the frontend, and Node.js with Axios for backend API calls and data transfer.</li>
-                </ul>
-                <p><strong>Technologies used:</strong> React.js, HTML, CSS, Node.js, Axios, MongoDB, Google Authentication API, Spoonacular API</p>
-            </article>
-        </section>
-    </main>
-
-    <footer>
-        <p>&copy; 2025 Zhong Wen Aaron Lu</p>
-    </footer>
+<script src="data/projects.js"></script>
+<script src="js/core.js"></script>
+<script src="js/site.js"></script>
 </body>
 </html>

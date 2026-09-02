@@ -141,6 +141,89 @@ a.contact-row:hover .contact-arrow { transform: translateX(4px); }
   border-radius: 2px;
 }
 
+/* ---------- project cards ---------- */
+.section-head { padding: 3rem 0 1.5rem; }
+.card-grid { display: grid; gap: 1.25rem; }
+.project-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 1.75rem;
+  transition: transform 250ms ease, box-shadow 250ms ease;
+}
+.project-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(20, 20, 25, 0.07);
+}
+.project-head { margin-bottom: 0.75rem; }
+.project-card .meta {
+  font-size: 0.75rem;
+  color: var(--faint);
+  margin: 0.35rem 0 0;
+  letter-spacing: 0.05em;
+}
+.project-card .tagline { color: var(--ink); font-style: italic; }
+.bullets { margin: 0 0 1rem; }
+.bullets li {
+  position: relative;
+  padding-left: 1.1rem;
+  margin-bottom: 0.5rem;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+.bullets li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.7em;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+.chips { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1rem; }
+.chip {
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 0.2rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+}
+.card-link {
+  font-size: 0.8rem;
+  text-decoration: none;
+  color: var(--accent);
+  display: inline-block;
+  transition: transform 200ms ease;
+}
+.card-link:hover { transform: translateX(3px); }
+
+/* ---------- coursework ---------- */
+.coursework-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 2rem;
+  border-top: 1px solid var(--line);
+}
+.course-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding: 0.8rem 0;
+  border-bottom: 1px solid var(--line);
+}
+.course-index {
+  font-size: 10px;
+  color: var(--accent);
+  flex: 0 0 2.5rem;
+  letter-spacing: 0.1em;
+}
+.course-title { flex: 1; font-size: 0.875rem; color: var(--muted); }
+.course-link { font-size: 11px; color: var(--faint); text-decoration: none; }
+.course-link:hover { color: var(--accent); }
+.noscript-note { border: 1px solid var(--line); padding: 1rem; border-radius: 8px; }
+
 /* ---------- responsive ---------- */
 @media (max-width: 768px) {
   .nav { gap: 1.1rem; padding: 0.6rem 1.1rem; }
@@ -148,6 +231,8 @@ a.contact-row:hover .contact-arrow { transform: translateX(4px); }
   .page-head { padding: 7rem 0 2rem; }
   .contact-row { flex-wrap: wrap; gap: 0.5rem 1rem; }
   .contact-label { flex-basis: 100%; }
+  .coursework-grid { grid-template-columns: 1fr; gap: 0; }
+  .project-card { padding: 1.25rem; }
 }
 
 /* ---------- reduced motion ---------- */

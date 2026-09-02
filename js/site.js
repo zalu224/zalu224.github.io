@@ -24,13 +24,35 @@
     for (var j = 0; j < nodes.length; j++) { observer.observe(nodes[j]); }
   }
 
+  function fill(id, html) {
+    var node = document.getElementById(id);
+    if (node) { node.innerHTML = html; }
+    return node;
+  }
+
+  function renderProjects() {
+    if (!global.PROJECTS) { return; }
+
+    fill('products', Core.projectsByKind(global.PROJECTS, 'product')
+      .map(Core.projectCardHtml).join(''));
+
+    fill('project-list', Core.projectsByKind(global.PROJECTS, 'project')
+      .map(Core.projectCardHtml).join(''));
+
+    if (global.COURSEWORK) {
+      fill('coursework-list', global.COURSEWORK.map(Core.courseworkRowHtml).join(''));
+    }
+  }
+
   function init() {
+    renderProjects();
     initReveals();
   }
 
   global.Site = {
     prefersReducedMotion: prefersReducedMotion,
     initReveals: initReveals,
+    renderProjects: renderProjects,
     init: init
   };
 
