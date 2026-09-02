@@ -354,6 +354,168 @@ a.contact-row:hover .contact-arrow { transform: translateX(4px); }
 .text-link { font-family: var(--mono); font-size: 0.75rem; color: var(--accent); text-decoration: none; }
 .text-link:hover { text-decoration: underline; }
 
+/* ---------- scan grid ---------- */
+.scan-grid { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+.scan-grid-lines {
+  position: absolute;
+  inset: -50% 0 0;
+  background-image:
+    repeating-linear-gradient(to right, rgba(20,20,25,.045) 0 1px, transparent 1px 60px),
+    repeating-linear-gradient(to bottom, rgba(20,20,25,.045) 0 1px, transparent 1px 60px);
+  transform: perspective(600px) rotateX(60deg);
+  transform-origin: center bottom;
+  -webkit-mask-image: radial-gradient(ellipse at 50% 80%, #000 20%, transparent 72%);
+  mask-image: radial-gradient(ellipse at 50% 80%, #000 20%, transparent 72%);
+}
+.scan-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--accent);
+  opacity: 0.12;
+  box-shadow: 0 0 24px 4px var(--accent);
+  animation: scan-sweep 8s linear infinite;
+}
+@keyframes scan-sweep {
+  from { transform: translateY(0); }
+  to { transform: translateY(100vh); }
+}
+
+/* ---------- card stage ---------- */
+.card-stage { position: absolute; inset: 0; z-index: 5; pointer-events: none; }
+.card-stage > * { pointer-events: auto; }
+
+/* ---------- id card ---------- */
+.id-card {
+  position: absolute;
+  top: 50%;
+  left: 22%;
+  width: 340px;
+  height: 214px;
+  margin: -107px 0 0 -170px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: 0 2px 6px rgba(20,20,25,.06), 0 18px 40px rgba(20,20,25,.10);
+  cursor: grab;
+  overflow: hidden;
+  touch-action: none;
+  text-align: left;
+  transition: transform 520ms var(--ease-spring), box-shadow 250ms ease, opacity 300ms ease;
+}
+.id-card.is-dragging {
+  cursor: grabbing;
+  transition: none;
+  box-shadow: 0 8px 16px rgba(20,20,25,.10), 0 32px 60px rgba(20,20,25,.18);
+}
+.id-card::after {
+  content: "";
+  position: absolute;
+  top: -60%;
+  left: -30%;
+  width: 40%;
+  height: 220%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.85), transparent);
+  transform: rotate(20deg) translateX(-260%);
+  transition: transform 700ms ease;
+  pointer-events: none;
+}
+.id-card:hover::after { transform: rotate(20deg) translateX(340%); }
+.id-card-head {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.55rem 0.9rem;
+  background: var(--accent);
+  color: #fff;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+}
+.id-card-body { display: flex; gap: 0.9rem; padding: 0.9rem; flex: 1; }
+.id-photo { width: 72px; height: 88px; object-fit: cover; border-radius: 6px; border: 1px solid var(--line); }
+.id-fields { display: flex; flex-direction: column; gap: 0.22rem; }
+.id-name { font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
+.id-role { font-size: 10px; color: var(--faint); text-transform: uppercase; letter-spacing: 0.12em; }
+.id-line { font-size: 9px; color: var(--faint); text-transform: uppercase; letter-spacing: 0.08em; }
+.id-card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.45rem 0.9rem 0.65rem;
+  border-top: 1px solid var(--line);
+}
+.barcode {
+  flex: 1;
+  height: 20px;
+  background-image: repeating-linear-gradient(90deg,
+    var(--ink) 0 2px, transparent 2px 4px,
+    var(--ink) 4px 5px, transparent 5px 9px,
+    var(--ink) 9px 12px, transparent 12px 14px);
+  opacity: 0.75;
+}
+.id-num { font-size: 9px; color: var(--faint); letter-spacing: 0.1em; }
+
+/* ---------- reader ---------- */
+.card-reader {
+  position: absolute;
+  top: 50%;
+  right: 8%;
+  width: 96px;
+  height: 260px;
+  margin-top: -130px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: inset 0 2px 12px rgba(20,20,25,.10);
+  transition: border-color 200ms ease, box-shadow 200ms ease;
+}
+.card-reader.is-near {
+  border-color: var(--accent);
+  box-shadow: inset 0 2px 12px rgba(20,20,25,.10), 0 0 0 4px rgba(31,63,212,.10);
+}
+.reader-slit {
+  position: absolute;
+  top: 14px;
+  left: 12px;
+  right: 12px;
+  height: 8px;
+  border-radius: 4px;
+  background: rgba(20,20,25,.55);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,.5);
+}
+.reader-led {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  margin-left: -4px;
+  border-radius: 50%;
+  background: var(--led-idle);
+  box-shadow: 0 0 8px var(--led-idle);
+  transition: background 200ms ease, box-shadow 200ms ease;
+}
+.reader-led.is-granted { background: var(--led); box-shadow: 0 0 14px var(--led); }
+
+.drag-hint { position: absolute; top: 50%; right: 8%; margin-top: 145px; text-align: right; }
+.readout {
+  position: absolute;
+  top: 50%;
+  right: 8%;
+  margin-top: 170px;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
+  min-height: 1em;
+}
+.id-card.is-consumed { opacity: 0; }
+
 /* ---------- responsive ---------- */
 @media (max-width: 768px) {
   .nav { gap: 1.1rem; padding: 0.6rem 1.1rem; }
@@ -368,6 +530,15 @@ a.contact-row:hover .contact-arrow { transform: translateX(4px); }
   .featured-grid { grid-template-columns: 1fr; }
   .stat-grid { grid-template-columns: 1fr; gap: 1.5rem; }
   .background { padding: 4rem 1.5rem; }
+  .hero { align-items: flex-start; }
+  .card-stage { position: relative; height: 62vh; }
+  .id-card { left: 50%; top: 34%; width: 280px; height: 176px; margin: -88px 0 0 -140px; }
+  .card-reader { top: auto; bottom: 4%; right: 50%; width: 260px; height: 96px; margin: 0 -130px 0 0; }
+  .reader-slit { top: 12px; left: 14px; right: 14px; }
+  .reader-led { bottom: 12px; }
+  .drag-hint, .readout { right: 50%; top: auto; bottom: 0; margin: 0 -130px 0 0; text-align: center; }
+  .hero-name { position: relative; padding: 7rem 1.5rem 2rem; }
+
 }
 
 /* ---------- reduced motion ---------- */

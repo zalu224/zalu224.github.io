@@ -20,6 +20,36 @@
 
 <main>
   <section class="hero" id="hero">
+    <div class="scan-grid" aria-hidden="true">
+      <div class="scan-grid-lines" data-parallax="0.3"></div>
+      <div class="scan-line"></div>
+    </div>
+
+    <div class="card-stage">
+      <button type="button" class="id-card" id="id-card"
+              aria-label="Access card. Drag it to the reader, or press Enter, to enter the site.">
+        <span class="id-card-head mono"><span>Access Card</span><span>USC &middot; Viterbi</span></span>
+        <span class="id-card-body">
+          <img class="id-photo" src="img/image.png" alt="" width="72" height="88">
+          <span class="id-fields mono">
+            <span class="id-name">Zhong Wen Aaron Lu</span>
+            <span class="id-role">Software Engineer &middot; ML</span>
+            <span class="id-line">M.S. Computer Science &mdash; AI</span>
+            <span class="id-line">B.A. Computer Science &middot; BU &rsquo;25</span>
+          </span>
+        </span>
+        <span class="id-card-foot"><span class="barcode"></span><span class="id-num mono">ID 2025&middot;0506</span></span>
+      </button>
+
+      <div class="card-reader" id="card-reader" aria-hidden="true">
+        <div class="reader-slit"></div>
+        <div class="reader-led" id="reader-led"></div>
+      </div>
+
+      <p class="drag-hint eyebrow" id="drag-hint">Drag the card</p>
+      <p class="readout mono" id="readout" role="status" aria-live="polite"></p>
+    </div>
+
     <div class="hero-name">
       <p class="eyebrow">Software &middot; Machine Learning &middot; AI</p>
       <h1>Aaron<br><span class="italic accent">Lu</span></h1>
