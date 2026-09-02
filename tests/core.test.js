@@ -46,3 +46,92 @@ test('parallaxOffset scales scroll and clamps both directions', () => {
   assert.strictEqual(Core.parallaxOffset(10000, 0.3, 200), 200);
   assert.strictEqual(Core.parallaxOffset(-10000, 0.3, 200), -200);
 });
+
+function fakeStorage(initial) {
+  const map = new Map(Object.entries(initial || {}));
+  return {
+    getItem: (k) => (map.has(k) ? map.get(k) : null),
+    setItem: (k, v) => { map.set(k, String(v)); },
+    _map: map
+  };
+}
+
+function throwingStorage() {
+  return {
+    getItem() { throw new Error('storage disabled'); },
+    setItem() { throw new Error('storage disabled'); }
+  };
+}
+
+test('isUnlockKey accepts scroll and keyboard intent keys', () => {
+  [' ', 'ArrowDown', 'PageDown', 'Tab', 'Enter'].forEach((k) => {
+    assert.strictEqual(Core.isUnlockKey(k), true, k + ' should unlock');
+  });
+  ['a', 'ArrowUp', 'Escape', 'Shift'].forEach((k) => {
+    assert.strictEqual(Core.isUnlockKey(k), false, k + ' should not unlock');
+  });
+});
+
+test('readUnlockFlag reads a set flag and survives a throwing storage', () => {
+  assert.strictEqual(Core.readUnlockFlag(fakeStorage({ 'aaronlu.unlocked': '1' })), true);
+  assert.strictEqual(Core.readUnlockFlag(fakeStorage()), false);
+  assert.strictEqual(Core.readUnlockFlag(throwingStorage()), false);
+});
+
+test('writeUnlockFlag persists and reports failure without throwing', () => {
+  const s = fakeStorage();
+  assert.strictEqual(Core.writeUnlockFlag(s), true);
+  assert.strictEqual(s.getItem('aaronlu.unlocked'), '1');
+  assert.strictEqual(Core.writeUnlockFlag(throwingStorage()), false);
+});
+
+test('a fresh lock state starts locked', () => {
+  const lock = Core.createLockState({ storage: fakeStorage() });
+  assert.strictEqual(lock.isUnlocked(), false);
+  assert.strictEqual(lock.reason(), null);
+});
+
+test('unlock is idempotent and notifies listeners exactly once', () => {
+  const lock = Core.createLockState({ storage: fakeStorage() });
+  const seen = [];
+  lock.onUnlock((why) => seen.push(why));
+
+  assert.strictEqual(lock.unlock('swipe'), true);
+  assert.strictEqual(lock.unlock('scroll'), false);
+  assert.strictEqual(lock.unlock('keyboard'), false);
+
+  assert.deepStrictEqual(seen, ['swipe']);
+  assert.strictEqual(lock.isUnlocked(), true);
+  assert.strictEqual(lock.reason(), 'swipe');
+});
+
+test('unlock persists the flag to storage', () => {
+  const s = fakeStorage();
+  Core.createLockState({ storage: s }).unlock('swipe');
+  assert.strictEqual(s.getItem('aaronlu.unlocked'), '1');
+});
+
+test('a stored flag restores the unlocked state on load', () => {
+  const lock = Core.createLockState({ storage: fakeStorage({ 'aaronlu.unlocked': '1' }) });
+  assert.strictEqual(lock.isUnlocked(), true);
+  assert.strictEqual(lock.reason(), 'restored');
+});
+
+test('reduced motion starts unlocked regardless of storage', () => {
+  const lock = Core.createLockState({ storage: fakeStorage(), reducedMotion: true });
+  assert.strictEqual(lock.isUnlocked(), true);
+  assert.strictEqual(lock.reason(), 'reduced-motion');
+});
+
+test('a throwing storage still yields a usable lock', () => {
+  const lock = Core.createLockState({ storage: throwingStorage() });
+  assert.strictEqual(lock.isUnlocked(), false);
+  assert.strictEqual(lock.unlock('scroll'), true);
+  assert.strictEqual(lock.isUnlocked(), true);
+});
+
+test('a missing storage is tolerated', () => {
+  const lock = Core.createLockState({});
+  assert.strictEqual(lock.isUnlocked(), false);
+  assert.strictEqual(lock.unlock('scroll'), true);
+});

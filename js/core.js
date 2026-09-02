@@ -29,13 +29,72 @@
     return clamp(scrollY * rate, -maxPx, maxPx);
   }
 
+  var UNLOCK_KEY = 'aaronlu.unlocked';
+  var UNLOCK_KEYS = [' ', 'Spacebar', 'ArrowDown', 'PageDown', 'Tab', 'Enter'];
+
+  function isUnlockKey(key) {
+    return UNLOCK_KEYS.indexOf(key) !== -1;
+  }
+
+  function readUnlockFlag(storage) {
+    try {
+      return storage.getItem(UNLOCK_KEY) === '1';
+    } catch (err) {
+      return false;
+    }
+  }
+
+  function writeUnlockFlag(storage) {
+    try {
+      storage.setItem(UNLOCK_KEY, '1');
+      return true;
+    } catch (err) {
+      return false;
+    }
+  }
+
+  function createLockState(options) {
+    var opts = options || {};
+    var storage = opts.storage || null;
+    var listeners = [];
+    var unlocked = false;
+    var reason = null;
+
+    if (opts.reducedMotion) {
+      unlocked = true;
+      reason = 'reduced-motion';
+    } else if (storage && readUnlockFlag(storage)) {
+      unlocked = true;
+      reason = 'restored';
+    }
+
+    return {
+      isUnlocked: function () { return unlocked; },
+      reason: function () { return reason; },
+      onUnlock: function (fn) { listeners.push(fn); },
+      unlock: function (why) {
+        if (unlocked) { return false; }
+        unlocked = true;
+        reason = why || 'unknown';
+        if (storage) { writeUnlockFlag(storage); }
+        for (var i = 0; i < listeners.length; i++) { listeners[i](reason); }
+        return true;
+      }
+    };
+  }
+
   var api = {
     clamp: clamp,
     distance: distance,
     centerOf: centerOf,
     isWithinSnapZone: isWithinSnapZone,
     tiltFromVelocity: tiltFromVelocity,
-    parallaxOffset: parallaxOffset
+    parallaxOffset: parallaxOffset,
+    UNLOCK_KEY: UNLOCK_KEY,
+    isUnlockKey: isUnlockKey,
+    readUnlockFlag: readUnlockFlag,
+    writeUnlockFlag: writeUnlockFlag,
+    createLockState: createLockState
   };
 
   if (typeof module !== 'undefined' && module.exports) { module.exports = api; }
