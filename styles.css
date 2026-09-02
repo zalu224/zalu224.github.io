@@ -516,6 +516,37 @@ a.contact-row:hover .contact-arrow { transform: translateX(4px); }
 }
 .id-card.is-consumed { opacity: 0; }
 
+/* ---------- gate ---------- */
+body.locked { overflow: hidden; }
+body.locked .nav { opacity: 0.25; pointer-events: none; }
+body.locked #gated,
+body.locked #background { opacity: 0; }
+#gated, #background { transition: opacity 600ms ease; }
+.scroll-cue {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--faint);
+}
+.scroll-cue span {
+  font-family: var(--mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+}
+.scroll-cue svg { animation: cue-bounce 1.6s ease-in-out infinite; }
+@keyframes cue-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(4px); }
+}
+body:not(.locked) .scroll-cue { opacity: 0; pointer-events: none; }
+
 /* ---------- responsive ---------- */
 @media (max-width: 768px) {
   .nav { gap: 1.1rem; padding: 0.6rem 1.1rem; }

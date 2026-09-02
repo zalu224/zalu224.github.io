@@ -223,11 +223,58 @@
     return { accept: accept };
   }
 
+  function initGate() {
+    var body = document.body;
+    if (!body.classList.contains('locked')) { return null; }
+
+    var storage = null;
+    try { storage = global.sessionStorage; } catch (err) { storage = null; }
+
+    var lock = Core.createLockState({
+      storage: storage,
+      reducedMotion: prefersReducedMotion()
+    });
+
+    function applyUnlocked(reason) {
+      body.classList.remove('locked');
+      var below = document.getElementById('background');
+      if (below) { below.removeAttribute('aria-hidden'); }
+      var gated = document.getElementById('gated');
+      if (gated) { gated.removeAttribute('aria-hidden'); }
+      if (reason !== 'restored' && reason !== 'reduced-motion' && below) {
+        below.scrollIntoView({
+          behavior: prefersReducedMotion() ? 'auto' : 'smooth',
+          block: 'start'
+        });
+      }
+    }
+
+    lock.onUnlock(applyUnlocked);
+
+    if (lock.isUnlocked()) {
+      applyUnlocked(lock.reason());
+    } else {
+      var byIntent = function (reason) {
+        return function () { lock.unlock(reason); };
+      };
+      global.addEventListener('wheel', byIntent('scroll'), { passive: true, once: true });
+      global.addEventListener('touchmove', byIntent('touch'), { passive: true, once: true });
+      global.addEventListener('keydown', function (event) {
+        if (Core.isUnlockKey(event.key)) { lock.unlock('keyboard'); }
+      });
+    }
+
+    return lock;
+  }
+
   function init() {
     renderProjects();
     renderWork();
     renderHome();
-    initCard(function () { /* Task 10 wires unlock here */ });
+    var lock = initGate();
+    initCard(function () {
+      if (lock) { lock.unlock('swipe'); }
+    });
     initReveals();
   }
 
@@ -238,6 +285,7 @@
     renderWork: renderWork,
     renderHome: renderHome,
     initCard: initCard,
+    initGate: initGate,
     init: init
   };
 

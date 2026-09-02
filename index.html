@@ -10,7 +10,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@300;400;500;600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body class="locked">
+<noscript><style>body.locked{overflow:auto}body.locked .nav{opacity:1;pointer-events:auto}body.locked #gated,body.locked #background{opacity:1}</style></noscript>
 <nav class="nav">
   <a href="index.html" aria-current="page">Home</a>
   <a href="work.html">Work</a>
@@ -50,6 +51,12 @@
       <p class="readout mono" id="readout" role="status" aria-live="polite"></p>
     </div>
 
+
+    <div class="scroll-cue" aria-hidden="true">
+      <span>Scroll</span>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+    </div>
+
     <div class="hero-name">
       <p class="eyebrow">Software &middot; Machine Learning &middot; AI</p>
       <h1>Aaron<br><span class="italic accent">Lu</span></h1>
@@ -68,7 +75,7 @@
     </div>
   </div>
 
-  <section class="background" id="background">
+  <section class="background" id="background" aria-hidden="true">
     <p class="eyebrow">About</p>
     <h2 class="reveal">Background</h2>
     <p class="reveal">I&rsquo;m a master&rsquo;s student in Computer Science at USC Viterbi, concentrating in Artificial Intelligence, and a 2025 Computer Science graduate of Boston University. My work sits where machine learning meets the product around it &mdash; training the model, then building the thing that puts it in front of people.</p>
