@@ -2,6 +2,8 @@
 const test = require('node:test');
 const assert = require('node:assert');
 const Core = require('../js/core.js');
+require('../data/projects.js');
+require('../data/work.js');
 
 test('clamp holds a value inside its bounds', () => {
   assert.strictEqual(Core.clamp(5, 0, 10), 5);
@@ -184,4 +186,139 @@ test('easeOutCubic starts at 0, ends at 1, and clamps out-of-range input', () =>
   assert.strictEqual(Core.easeOutCubic(-5), 0);
   assert.strictEqual(Core.easeOutCubic(5), 1);
   assert.ok(Core.easeOutCubic(0.5) > 0.5, 'ease-out is ahead of linear at the midpoint');
+});
+
+test('escapeHtml neutralises every injection character', () => {
+  assert.strictEqual(
+    Core.escapeHtml('<img src=x onerror="a&b\'c">'),
+    '&lt;img src=x onerror=&quot;a&amp;b&#39;c&quot;&gt;'
+  );
+  assert.strictEqual(Core.escapeHtml(null), '');
+  assert.strictEqual(Core.escapeHtml(undefined), '');
+});
+
+test('parsePeriod converts months and years to comparable numbers', () => {
+  const a = Core.parsePeriod('Jul 2025 - Dec 2025');
+  assert.strictEqual(a.start, 2025 * 12 + 6);
+  assert.strictEqual(a.end, 2025 * 12 + 11);
+
+  const b = Core.parsePeriod('2026 - Present');
+  assert.strictEqual(b.start, 2026 * 12);
+  assert.strictEqual(b.end, Infinity);
+
+  const c = Core.parsePeriod('2024');
+  assert.strictEqual(c.start, 2024 * 12);
+  assert.strictEqual(c.end, 2024 * 12);
+});
+
+test('parsePeriod accepts an en dash as the separator', () => {
+  const p = Core.parsePeriod('Sep 2021 – Jul 2026');
+  assert.strictEqual(p.start, 2021 * 12 + 8);
+  assert.strictEqual(p.end, 2026 * 12 + 6);
+});
+
+test('sortWork orders by most recent start, matching the spec order', () => {
+  const entries = [
+    { company: 'Rivera Food Service Inc.', period: 'Sep 2021 – Jul 2026' },
+    { company: 'AlphaBiz', period: 'Jul 2025 – Dec 2025' },
+    { company: 'Interesting World', period: 'Jun 2024 – Aug 2024' }
+  ];
+  assert.deepStrictEqual(
+    Core.sortWork(entries).map((e) => e.company),
+    ['AlphaBiz', 'Interesting World', 'Rivera Food Service Inc.']
+  );
+});
+
+test('sortWork does not mutate its input', () => {
+  const entries = [
+    { company: 'A', period: '2020' },
+    { company: 'B', period: '2026' }
+  ];
+  Core.sortWork(entries);
+  assert.deepStrictEqual(entries.map((e) => e.company), ['A', 'B']);
+});
+
+test('featuredProjects and projectsByKind filter the shipped data', () => {
+  const featured = Core.featuredProjects(globalThis.PROJECTS);
+  assert.deepStrictEqual(featured.map((p) => p.id), ['pokecha', 'ofye']);
+  assert.strictEqual(Core.projectsByKind(globalThis.PROJECTS, 'product').length, 2);
+  assert.strictEqual(Core.projectsByKind(globalThis.PROJECTS, 'project').length, 5);
+});
+
+test('projectCardHtml renders title, meta, bullets, chips and an external link', () => {
+  const html = Core.projectCardHtml({
+    id: 'demo', kind: 'project', title: 'Demo', tagline: 'A tagline.',
+    url: 'https://example.com', period: '2024', role: 'Solo',
+    stack: ['Python'], bullets: ['Did a thing.']
+  });
+  assert.ok(html.includes('id="demo"'));
+  assert.ok(html.includes('<h3 class="serif">Demo</h3>'));
+  assert.ok(html.includes('Solo · 2024'));
+  assert.ok(html.includes('<li>Did a thing.</li>'));
+  assert.ok(html.includes('<li class="chip">Python</li>'));
+  assert.ok(html.includes('href="https://example.com"'));
+  assert.ok(html.includes('rel="noopener"'));
+});
+
+test('projectCardHtml omits the link and tagline when absent', () => {
+  const html = Core.projectCardHtml({
+    id: 'x', title: 'X', period: '2024', role: 'Solo', stack: [], bullets: []
+  });
+  assert.ok(!html.includes('<a class="card-link'));
+  assert.ok(!html.includes('class="tagline"'));
+});
+
+test('projectCardHtml escapes hostile content', () => {
+  const html = Core.projectCardHtml({
+    id: 'x', title: '<script>alert(1)</script>', period: '2024', role: 'r',
+    stack: [], bullets: []
+  });
+  assert.ok(!html.includes('<script>'));
+  assert.ok(html.includes('&lt;script&gt;'));
+});
+
+test('workEntryHtml renders role, company, period and location', () => {
+  const html = Core.workEntryHtml({
+    company: 'AlphaBiz', role: 'AI Intern', period: 'Jul 2025 – Dec 2025',
+    location: 'Remote', bullets: ['Shipped it.']
+  });
+  assert.ok(html.includes('AI Intern'));
+  assert.ok(html.includes('AlphaBiz'));
+  assert.ok(html.includes('Jul 2025 – Dec 2025 · Remote'));
+  assert.ok(html.includes('<li>Shipped it.</li>'));
+});
+
+test('workEntryHtml omits the separator when there is no location', () => {
+  const html = Core.workEntryHtml({
+    company: 'C', role: 'R', period: '2024', bullets: []
+  });
+  assert.ok(html.includes('>2024<'));
+  assert.ok(!html.includes('2024 ·'));
+});
+
+test('courseworkRowHtml renders the index badge and repo link', () => {
+  const html = Core.courseworkRowHtml({
+    index: 'A0', title: 'Warm-up', url: 'https://github.com/zalu224/zlu224-assignment-0'
+  });
+  assert.ok(html.includes('>A0<'));
+  assert.ok(html.includes('Warm-up'));
+  assert.ok(html.includes('href="https://github.com/zalu224/zlu224-assignment-0"'));
+});
+
+test('shipped work data carries no stale "Present" dates', () => {
+  const periods = globalThis.WORK.map((w) => w.period).join(' ');
+  assert.ok(!/Present/.test(periods), 'no role should still say Present');
+});
+
+test('shipped education data uses the corrected BU degree', () => {
+  const bu = globalThis.EDUCATION.find((e) => /Boston/.test(e.school));
+  assert.match(bu.degree, /^B\.A\./);
+  assert.match(bu.division, /College of Arts and Sciences/);
+});
+
+test('every coursework link is preserved and unique', () => {
+  assert.strictEqual(globalThis.COURSEWORK.length, 12);
+  const urls = globalThis.COURSEWORK.map((c) => c.url);
+  assert.strictEqual(new Set(urls).size, 12);
+  urls.forEach((u) => assert.match(u, /^https:\/\/github\.com\/zalu224\//));
 });
