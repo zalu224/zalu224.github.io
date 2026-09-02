@@ -75,9 +75,29 @@
     }
   }
 
+  function expRowHtml(entry) {
+    return '<div class="exp-row reveal">' +
+      '<div>' +
+        '<p class="exp-role">' + Core.escapeHtml(entry.role) + '</p>' +
+        '<p class="exp-company">' + Core.escapeHtml(entry.company) + '</p>' +
+      '</div>' +
+      '<span class="exp-date">' + Core.escapeHtml(entry.period) + '</span>' +
+    '</div>';
+  }
+
+  function renderHome() {
+    if (global.PROJECTS) {
+      fill('featured', Core.featuredProjects(global.PROJECTS).map(Core.projectCardHtml).join(''));
+    }
+    if (global.WORK) {
+      fill('experience-strip', Core.sortWork(global.WORK).map(expRowHtml).join(''));
+    }
+  }
+
   function init() {
     renderProjects();
     renderWork();
+    renderHome();
     initReveals();
   }
 
@@ -86,6 +106,7 @@
     initReveals: initReveals,
     renderProjects: renderProjects,
     renderWork: renderWork,
+    renderHome: renderHome,
     init: init
   };
 
