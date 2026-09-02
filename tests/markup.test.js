@@ -79,3 +79,56 @@ test('every page marks its own nav link as current', () => {
     assert.match(html, new RegExp('href="' + page + '" aria-current="page"'));
   }
 });
+
+const SHIPPED = PAGES.concat(['work-experience.html', 'assignments.html'])
+  .map(read)
+  .concat([read('data/projects.js'), read('data/work.js')])
+  .join('\n');
+
+test('no corrected-away facts from the old site survive anywhere', () => {
+  const stale = [
+    [/B\.S\.? in Computer Science/i, 'BU degree is a B.A., not a B.S.'],
+    [/School of College/i, 'BU division is the College of Arts and Sciences'],
+    [/666,000/, 'the street-tree figure is 650,000+'],
+    [/60% and 88%/, 'that garbled bullet was two separate numbers'],
+    [/AlphaBiz[^.]{0,40}Present/i, 'AlphaBiz ended Dec 2025'],
+    [/previously a Computer Science student/i, 'the About copy now leads with the present']
+  ];
+  for (const [re, why] of stale) {
+    assert.ok(!re.test(SHIPPED), `stale content found (${why}): ${re}`);
+  }
+});
+
+test("OFYE's marketing performance claims never appear on this site", () => {
+  for (const re of [/win rate/i, /\b363(\.\d+)?%/, /\b177(\.\d+)?%/, /active members/i]) {
+    assert.ok(!re.test(SHIPPED), `OFYE claim leaked into the portfolio: ${re}`);
+  }
+});
+
+test('both legacy URLs redirect instead of 404ing', () => {
+  const cases = [
+    ['work-experience.html', 'work.html'],
+    ['assignments.html', 'projects.html#coursework']
+  ];
+  for (const [stub, target] of cases) {
+    const html = read(stub);
+    assert.match(html, new RegExp('http-equiv="refresh"[^>]*url=' + target.replace(/[.#]/g, '\\$&')));
+    assert.ok(html.includes(`href="${target}"`), `${stub} needs a clickable fallback link`);
+  }
+});
+
+test('every page declares a title and description for search results', () => {
+  for (const page of PAGES) {
+    const html = read(page);
+    assert.match(html, /<title>[^<]{10,}<\/title>/, `${page} needs a real title`);
+    assert.match(html, /<meta name="description" content="[^"]{30,}"/, `${page} needs a description`);
+  }
+});
+
+test('the USC and BU facts render exactly as the resume states them', () => {
+  const work = read('data/work.js');
+  assert.ok(work.includes('M.S. Computer Science — Artificial Intelligence'));
+  assert.ok(work.includes('Viterbi School of Engineering'));
+  assert.ok(work.includes('B.A. Computer Science'));
+  assert.ok(work.includes('College of Arts and Sciences'));
+});
