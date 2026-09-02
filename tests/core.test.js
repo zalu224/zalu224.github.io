@@ -322,3 +322,14 @@ test('every coursework link is preserved and unique', () => {
   assert.strictEqual(new Set(urls).size, 12);
   urls.forEach((u) => assert.match(u, /^https:\/\/github\.com\/zalu224\//));
 });
+
+test('bulletsHtml marks the first number for the counter animation', () => {
+  const html = Core.bulletsHtml(['Achieved 96% accuracy on the test set.']);
+  assert.ok(html.includes('<span class="stat-num" data-count>96%</span>'));
+});
+
+test('bulletsHtml leaves numberless bullets alone', () => {
+  const html = Core.bulletsHtml(['Shipped the thing.']);
+  assert.ok(!html.includes('data-count'));
+  assert.ok(html.includes('<li>Shipped the thing.</li>'));
+});

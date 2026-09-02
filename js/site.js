@@ -267,6 +267,100 @@
     return lock;
   }
 
+  function animateCount(node) {
+    var spec = Core.parseCountable(node.textContent);
+    if (!spec) { return; }
+    var start = 0;
+    var duration = 900;
+
+    function frame(now) {
+      if (!start) { start = now; }
+      var t = Core.clamp((now - start) / duration, 0, 1);
+      node.textContent = Core.formatCount(spec.value * Core.easeOutCubic(t), spec);
+      if (t < 1) { requestAnimationFrame(frame); }
+      else { node.textContent = Core.formatCount(spec.value, spec); }
+    }
+    requestAnimationFrame(frame);
+  }
+
+  function initCounters() {
+    var nodes = document.querySelectorAll('[data-count]');
+    if (!nodes.length || prefersReducedMotion() || !global.IntersectionObserver) { return; }
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) { return; }
+        observer.unobserve(entry.target);
+        animateCount(entry.target);
+      });
+    }, { threshold: 0.6 });
+    for (var i = 0; i < nodes.length; i++) { observer.observe(nodes[i]); }
+  }
+
+  function initParallax() {
+    var nodes = document.querySelectorAll('[data-parallax]');
+    if (!nodes.length || prefersReducedMotion()) { return; }
+    var ticking = false;
+
+    function update() {
+      var y = global.pageYOffset || document.documentElement.scrollTop;
+      for (var i = 0; i < nodes.length; i++) {
+        var rate = parseFloat(nodes[i].getAttribute('data-parallax')) || 0.3;
+        nodes[i].style.transform = 'translate3d(0,' + Core.parallaxOffset(y, rate, 200) + 'px,0)';
+      }
+      ticking = false;
+    }
+
+    global.addEventListener('scroll', function () {
+      if (ticking) { return; }
+      ticking = true;
+      requestAnimationFrame(update);
+    }, { passive: true });
+    update();
+  }
+
+  function initMagnetic() {
+    if (prefersReducedMotion() || !global.matchMedia ||
+        !global.matchMedia('(pointer: fine)').matches) { return; }
+    var nodes = document.querySelectorAll('.pill, .nav a');
+
+    for (var i = 0; i < nodes.length; i++) {
+      (function (node) {
+        node.addEventListener('pointermove', function (event) {
+          var rect = node.getBoundingClientRect();
+          var mx = Core.clamp((event.clientX - rect.left - rect.width / 2) * 0.3, -6, 6);
+          var my = Core.clamp((event.clientY - rect.top - rect.height / 2) * 0.3, -6, 6);
+          node.style.transform = 'translate3d(' + mx + 'px,' + my + 'px,0)';
+        });
+        node.addEventListener('pointerleave', function () { node.style.transform = ''; });
+      })(nodes[i]);
+    }
+  }
+
+  function initPageTransitions() {
+    if (prefersReducedMotion()) { return; }
+
+    var wipe = document.createElement('div');
+    wipe.className = 'wipe';
+    document.body.appendChild(wipe);
+
+    document.addEventListener('click', function (event) {
+      var link = event.target.closest ? event.target.closest('a[href]') : null;
+      if (!link || event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) { return; }
+      if (link.target === '_blank' || link.origin !== global.location.origin) { return; }
+      var href = link.getAttribute('href');
+      if (!href || href.charAt(0) === '#' || href.indexOf('mailto:') === 0 ||
+          href.indexOf('tel:') === 0) { return; }
+
+      event.preventDefault();
+      if (document.startViewTransition) {
+        document.startViewTransition(function () { global.location.href = href; });
+        return;
+      }
+      wipe.classList.add('is-active');
+      setTimeout(function () { global.location.href = href; }, 220);
+    });
+  }
+
   function init() {
     renderProjects();
     renderWork();
@@ -276,6 +370,10 @@
       if (lock) { lock.unlock('swipe'); }
     });
     initReveals();
+    initCounters();
+    initParallax();
+    initMagnetic();
+    initPageTransitions();
   }
 
   global.Site = {
@@ -286,6 +384,10 @@
     renderHome: renderHome,
     initCard: initCard,
     initGate: initGate,
+    initCounters: initCounters,
+    initParallax: initParallax,
+    initMagnetic: initMagnetic,
+    initPageTransitions: initPageTransitions,
     init: init
   };
 

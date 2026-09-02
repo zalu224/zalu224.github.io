@@ -173,7 +173,11 @@
   function bulletsHtml(bullets) {
     if (!bullets || !bullets.length) { return ''; }
     return '<ul class="bullets">' + bullets.map(function (b) {
-      return '<li>' + escapeHtml(b) + '</li>';
+      var text = escapeHtml(b);
+      return '<li>' + text.replace(
+        /(\d[\d,]*(?:\.\d+)?%?\+?)/,
+        '<span class="stat-num" data-count>$1</span>'
+      ) + '</li>';
     }).join('') + '</ul>';
   }
 
