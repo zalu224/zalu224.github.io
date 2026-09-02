@@ -256,3 +256,11 @@ test('the skills list leads with product skills, grounded in the real work bulle
   const order = /skillGroupHtml\('Product[^']*'.*?\n.*?skillGroupHtml\('Machine learning/s;
   assert.match(site, order, 'Product & collaboration must render before Machine learning & AI');
 });
+
+test('every page footer reads "Built with intention" at bottom right', () => {
+  for (const page of PAGES) {
+    const html = read(page);
+    assert.match(html, /<div>\s*<span>&copy;[^<]*<\/span>\s*<span>Built with intention<\/span>\s*<\/div>/,
+      `${page} footer must end with "Built with intention"`);
+  }
+});
