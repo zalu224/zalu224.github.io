@@ -112,7 +112,7 @@ test('parallaxOffset scales scroll and clamps both directions', () => {
 
 - [ ] **Step 2: Run the test to verify it fails**
 
-Run: `node --test tests/`
+Run: `node --test`
 Expected: FAIL — `Cannot find module '../js/core.js'`
 
 - [ ] **Step 3: Write the minimal implementation**
@@ -167,7 +167,7 @@ Create `js/core.js`:
 
 - [ ] **Step 4: Run the test to verify it passes**
 
-Run: `node --test tests/`
+Run: `node --test`
 Expected: PASS — 6 tests, 0 failures.
 
 - [ ] **Step 5: Commit**
@@ -286,7 +286,7 @@ test('a missing storage is tolerated', () => {
 
 - [ ] **Step 2: Run the test to verify it fails**
 
-Run: `node --test tests/`
+Run: `node --test`
 Expected: FAIL — `Core.isUnlockKey is not a function`
 
 - [ ] **Step 3: Write the minimal implementation**
@@ -353,7 +353,7 @@ Then add these keys to the `api` object: `UNLOCK_KEY: UNLOCK_KEY, isUnlockKey: i
 
 - [ ] **Step 4: Run the test to verify it passes**
 
-Run: `node --test tests/`
+Run: `node --test`
 Expected: PASS — 16 tests, 0 failures.
 
 - [ ] **Step 5: Commit**
@@ -433,7 +433,7 @@ test('easeOutCubic starts at 0, ends at 1, and clamps out-of-range input', () =>
 
 - [ ] **Step 2: Run the test to verify it fails**
 
-Run: `node --test tests/`
+Run: `node --test`
 Expected: FAIL — `Core.parseCountable is not a function`
 
 - [ ] **Step 3: Write the minimal implementation**
@@ -479,7 +479,7 @@ Add to the `api` object: `parseCountable: parseCountable, formatCount: formatCou
 
 - [ ] **Step 4: Run the test to verify it passes**
 
-Run: `node --test tests/`
+Run: `node --test`
 Expected: PASS — 24 tests, 0 failures.
 
 - [ ] **Step 5: Commit**
@@ -659,7 +659,7 @@ require('../data/work.js');
 
 - [ ] **Step 2: Run the test to verify it fails**
 
-Run: `node --test tests/`
+Run: `node --test`
 Expected: FAIL — `Cannot find module '../data/projects.js'`
 
 - [ ] **Step 3: Write the data files**
@@ -981,7 +981,7 @@ Add to the `api` object: `escapeHtml: escapeHtml, parsePeriod: parsePeriod, sort
 
 - [ ] **Step 5: Run the test to verify it passes**
 
-Run: `node --test tests/`
+Run: `node --test`
 Expected: PASS — 39 tests, 0 failures.
 
 - [ ] **Step 6: Commit**
@@ -1308,7 +1308,7 @@ Confirm: paper background, serif "Get in touch", floating pill nav with Contact 
 
 - [ ] **Step 5: Run the unit tests to confirm nothing regressed**
 
-Run: `node --test tests/`
+Run: `node --test`
 Expected: PASS — 39 tests, 0 failures.
 
 - [ ] **Step 6: Commit**
@@ -1693,7 +1693,7 @@ Confirm the timeline order is **AlphaBiz, Interesting World, Rivera** with accen
 
 - [ ] **Step 5: Run the unit tests**
 
-Run: `node --test tests/`
+Run: `node --test`
 Expected: PASS — 39 tests, 0 failures.
 
 - [ ] **Step 6: Commit**
@@ -2506,7 +2506,7 @@ Reload `http://localhost:8000/` for each, using a fresh tab or clearing session 
 
 - [ ] **Step 5: Run the unit tests**
 
-Run: `node --test tests/`
+Run: `node --test`
 Expected: PASS — 39 tests, 0 failures.
 
 - [ ] **Step 6: Commit**
@@ -2705,7 +2705,7 @@ Add the parallax hooks in `index.html`: `data-parallax="0.3"` on `.scan-grid-lin
 
 - [ ] **Step 4: Run the tests**
 
-Run: `node --test tests/`
+Run: `node --test`
 Expected: PASS — 41 tests, 0 failures.
 
 - [ ] **Step 5: Verify in a browser**
@@ -2772,7 +2772,7 @@ Replace the entire contents of `assignments.html`:
 
 - [ ] **Step 2: Run the full test suite**
 
-Run: `node --test tests/`
+Run: `node --test`
 Expected: PASS — 41 tests, 0 failures.
 
 - [ ] **Step 3: Walk the spec's verification checklist**
