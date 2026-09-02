@@ -268,14 +268,12 @@ a.contact-row:hover .contact-arrow { transform: translateX(4px); }
   overflow: hidden;
   display: flex;
   align-items: flex-end;
-  justify-content: space-between;
   gap: 2rem;
 }
 .hero-name { position: relative; z-index: 10; max-width: 32rem; padding: 0 2rem 4rem; order: 1; }
 .hero-name h1 { font-size: clamp(3rem, 8vw, 5.5rem); line-height: 1.05; }
 .hero-line { max-width: 26rem; margin-top: 1rem; font-size: 0.95rem; line-height: 1.6; }
-.hero-line p { margin: 0 0 0.35rem; }
-.hero-line p:last-child { margin-bottom: 0; }
+.hero-line p { margin: 0; }
 .hero-cta { display: flex; align-items: center; gap: 1rem; margin-top: 1.5rem; }
 .pill {
   padding: 0.65rem 1.25rem;
@@ -393,7 +391,7 @@ a.contact-row:hover .contact-arrow { transform: translateX(4px); }
   flex: 0 0 auto;
   width: 480px;
   height: 380px;
-  margin: 0 2rem 4rem 0;
+  margin: 0 auto 4rem auto;
   order: 2;
 }
 

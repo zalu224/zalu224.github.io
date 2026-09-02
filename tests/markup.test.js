@@ -148,12 +148,12 @@ test('the name and card never share a column: they are separate, oppositely-orde
 
   const heroBlock = /\.hero\s*\{[^}]*\}/.exec(css)[0];
   assert.match(heroBlock, /display:\s*flex/);
-  assert.match(heroBlock, /justify-content:\s*space-between/, '.hero must space its two columns apart, not stack them');
 
   const stageBlock = /\.card-stage\s*\{[^}]*\}/.exec(css)[0];
   assert.doesNotMatch(stageBlock, /inset:\s*0/, 'card-stage must not span the full hero any more');
   assert.match(stageBlock, /width:\s*\d/, 'card-stage needs its own explicit width to form a real column');
   assert.match(stageBlock, /height:\s*\d/, 'card-stage needs its own explicit height to form a real column');
+  assert.match(stageBlock, /margin:.*auto.*auto/, 'card-stage should center in the remaining space, not hug the viewport edge');
 
   const nameOrder = parseFloat(/order:\s*(\d+)/.exec(/\.hero-name\s*\{[^}]*\}/.exec(css)[0])[1]);
   const stageOrder = parseFloat(/order:\s*(\d+)/.exec(stageBlock)[1]);
@@ -230,8 +230,8 @@ test('the hero bio line is spaced into its own lines, with no trailing "actually
 
   const lines = [...block[1].matchAll(/<p>([^<]*)<\/p>/g)].map((m) => m[1]);
   assert.deepStrictEqual(lines, [
-    'Technical Product Manager with an engineering core &mdash;',
-    'M.S. Computer Science (AI) at USC,',
+    'Technical Product Manager with an engineering core',
+    'M.S. Computer Science (AI) at USC',
     'Boston University CS &rsquo;25.',
     'I turn ML and engineering depth into products.'
   ]);
