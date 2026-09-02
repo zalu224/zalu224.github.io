@@ -135,3 +135,53 @@ test('a missing storage is tolerated', () => {
   assert.strictEqual(lock.isUnlocked(), false);
   assert.strictEqual(lock.unlock('scroll'), true);
 });
+
+test('parseCountable splits a plain percentage', () => {
+  assert.deepStrictEqual(Core.parseCountable('88%'), {
+    prefix: '', value: 88, suffix: '%', decimals: 0, grouped: false
+  });
+});
+
+test('parseCountable handles grouped digits and a trailing plus', () => {
+  assert.deepStrictEqual(Core.parseCountable('650,000+'), {
+    prefix: '', value: 650000, suffix: '+', decimals: 0, grouped: true
+  });
+});
+
+test('parseCountable keeps trailing words in the suffix', () => {
+  const spec = Core.parseCountable('97% F1');
+  assert.strictEqual(spec.value, 97);
+  assert.strictEqual(spec.suffix, '% F1');
+});
+
+test('parseCountable preserves decimal places', () => {
+  const spec = Core.parseCountable('1.5x');
+  assert.strictEqual(spec.value, 1.5);
+  assert.strictEqual(spec.decimals, 1);
+});
+
+test('parseCountable returns null when there is no number', () => {
+  assert.strictEqual(Core.parseCountable('Present'), null);
+  assert.strictEqual(Core.parseCountable(''), null);
+});
+
+test('formatCount round-trips every countable string we ship', () => {
+  ['88%', '650,000+', '96%', '97% F1', '30%', '1.5x'].forEach((text) => {
+    const spec = Core.parseCountable(text);
+    assert.strictEqual(Core.formatCount(spec.value, spec), text, 'round trip for ' + text);
+  });
+});
+
+test('formatCount groups intermediate values during the animation', () => {
+  const spec = Core.parseCountable('650,000+');
+  assert.strictEqual(Core.formatCount(325000, spec), '325,000+');
+  assert.strictEqual(Core.formatCount(0, spec), '0+');
+});
+
+test('easeOutCubic starts at 0, ends at 1, and clamps out-of-range input', () => {
+  assert.strictEqual(Core.easeOutCubic(0), 0);
+  assert.strictEqual(Core.easeOutCubic(1), 1);
+  assert.strictEqual(Core.easeOutCubic(-5), 0);
+  assert.strictEqual(Core.easeOutCubic(5), 1);
+  assert.ok(Core.easeOutCubic(0.5) > 0.5, 'ease-out is ahead of linear at the midpoint');
+});

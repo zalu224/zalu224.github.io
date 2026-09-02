@@ -83,6 +83,39 @@
     };
   }
 
+  var COUNT_RE = /^([^0-9-]*)(-?[0-9,]*\.?[0-9]+)(.*)$/;
+
+  function parseCountable(text) {
+    var match = COUNT_RE.exec(String(text === null || text === undefined ? '' : text).trim());
+    if (!match) { return null; }
+    var raw = match[2];
+    var value = parseFloat(raw.replace(/,/g, ''));
+    if (isNaN(value)) { return null; }
+    var dot = raw.indexOf('.');
+    return {
+      prefix: match[1],
+      value: value,
+      suffix: match[3],
+      decimals: dot === -1 ? 0 : raw.length - dot - 1,
+      grouped: raw.indexOf(',') !== -1
+    };
+  }
+
+  function formatCount(value, spec) {
+    var fixed = value.toFixed(spec.decimals);
+    if (spec.grouped) {
+      var parts = fixed.split('.');
+      parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      fixed = parts.join('.');
+    }
+    return spec.prefix + fixed + spec.suffix;
+  }
+
+  function easeOutCubic(t) {
+    var c = clamp(t, 0, 1);
+    return 1 - Math.pow(1 - c, 3);
+  }
+
   var api = {
     clamp: clamp,
     distance: distance,
@@ -94,7 +127,10 @@
     isUnlockKey: isUnlockKey,
     readUnlockFlag: readUnlockFlag,
     writeUnlockFlag: writeUnlockFlag,
-    createLockState: createLockState
+    createLockState: createLockState,
+    parseCountable: parseCountable,
+    formatCount: formatCount,
+    easeOutCubic: easeOutCubic
   };
 
   if (typeof module !== 'undefined' && module.exports) { module.exports = api; }
