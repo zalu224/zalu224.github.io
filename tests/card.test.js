@@ -44,9 +44,10 @@ function bootstrap() {
   const led = makeEl('reader-led', { left: 0, top: 0, width: 8, height: 8 });
   const readout = makeEl('readout', { left: 0, top: 0, width: 0, height: 0 });
   const hint = makeEl('drag-hint', { left: 0, top: 0, width: 0, height: 0 });
+  const nameTag = makeEl('name-tag', { left: 30, top: -260, width: 150, height: 190 });
   const byId = {
     'id-card': card, 'card-reader': reader, 'reader-led': led,
-    readout: readout, 'drag-hint': hint
+    readout: readout, 'drag-hint': hint, 'name-tag': nameTag
   };
 
   const sandbox = {
@@ -71,7 +72,7 @@ function bootstrap() {
   vm.runInContext(fs.readFileSync(path.join(ROOT, 'js/core.js'), 'utf8'), sandbox);
   vm.runInContext(fs.readFileSync(path.join(ROOT, 'js/site.js'), 'utf8'), sandbox);
 
-  return { sandbox, card, reader, led, readout };
+  return { sandbox, card, reader, led, readout, nameTag };
 }
 
 test('a drag released away from the reader springs back and does not unlock', () => {
@@ -136,4 +137,67 @@ test('initCard is inert on a page with no card', () => {
   const { sandbox } = bootstrap();
   sandbox.document.getElementById = () => null;
   assert.strictEqual(sandbox.Site.initCard(() => {}), null);
+});
+
+test('initNameTag is inert on a page with no name tag', () => {
+  const { sandbox } = bootstrap();
+  sandbox.document.getElementById = (id) => (id === 'name-tag' ? null : null);
+  assert.strictEqual(sandbox.Site.initNameTag(), null);
+});
+
+test('dragging the name tag tilts it like the card', () => {
+  const { sandbox, nameTag } = bootstrap();
+  sandbox.Site.initNameTag();
+  nameTag.fire('pointerdown', { clientX: 100, clientY: 50, pointerId: 1 });
+  nameTag.fire('pointermove', { clientX: 220, clientY: 60, pointerId: 1 });
+  assert.match(nameTag.style.transform, /translate3d\(120px,10px,0\) rotate\(-?[\d.]+deg\)/);
+});
+
+test('releasing the name tag leaves it exactly where it was dropped, no spring-back', () => {
+  const { sandbox, nameTag } = bootstrap();
+  sandbox.Site.initNameTag();
+  nameTag.fire('pointerdown', { clientX: 100, clientY: 50, pointerId: 1 });
+  nameTag.fire('pointermove', { clientX: 260, clientY: 140, pointerId: 1 });
+  const midDrag = nameTag.style.transform;
+  nameTag.fire('pointerup', { clientX: 260, clientY: 140, pointerId: 1 });
+  assert.strictEqual(nameTag.style.transform, midDrag, 'the id-card springs back; the name tag must not');
+  assert.notStrictEqual(nameTag.style.transform, '', 'it should be visibly displaced, not reset');
+});
+
+test('drop() reveals the name tag by adding is-dropped', () => {
+  const { sandbox, nameTag } = bootstrap();
+  const api = sandbox.Site.initNameTag();
+  assert.strictEqual(nameTag._classes.has('is-dropped'), false);
+  api.drop();
+  assert.strictEqual(nameTag._classes.has('is-dropped'), true);
+});
+
+test('completing the swipe drops the name tag before the page unlocks', async () => {
+  const { sandbox, card, reader, nameTag } = bootstrap();
+  const order = [];
+  sandbox.Site.initCard(
+    () => order.push('accepted'),
+    () => order.push('granted')
+  );
+
+  card.fire('pointerdown', { clientX: 370, clientY: 400, pointerId: 1 });
+  card.fire('pointermove', { clientX: 1048, clientY: 410, pointerId: 1 });
+  card.fire('pointerup', { clientX: 1048, clientY: 410, pointerId: 1 });
+
+  await new Promise((r) => setTimeout(r, 2200));
+
+  assert.deepStrictEqual(order, ['granted', 'accepted'], 'the tag must drop before the page scrolls away');
+  assert.strictEqual(nameTag._classes.has('is-dropped'), false, 'initCard does not touch the tag directly — init() wires that');
+});
+
+test('initCard still works with only one argument, for backward compatibility', async () => {
+  const { sandbox, card } = bootstrap();
+  let accepted = 0;
+  assert.doesNotThrow(() => sandbox.Site.initCard(() => { accepted++; }));
+
+  card.fire('pointerdown', { clientX: 370, clientY: 400, pointerId: 1 });
+  card.fire('pointermove', { clientX: 1048, clientY: 410, pointerId: 1 });
+  card.fire('pointerup', { clientX: 1048, clientY: 410, pointerId: 1 });
+  await new Promise((r) => setTimeout(r, 2200));
+  assert.strictEqual(accepted, 1);
 });

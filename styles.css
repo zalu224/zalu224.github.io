@@ -525,6 +525,62 @@ a.contact-row:hover .contact-arrow { transform: translateX(4px); }
 }
 .id-card.is-consumed { opacity: 0; }
 
+/* ---------- name tag ---------- */
+.name-tag {
+  position: absolute;
+  left: 30px;
+  top: -260px;
+  width: 150px;
+  z-index: 6;
+  padding: 0.9rem 0.8rem 1rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: 0 12px 30px rgba(20, 20, 25, 0.14);
+  text-align: center;
+  cursor: grab;
+  touch-action: none;
+  pointer-events: none;
+  transition: top 750ms var(--ease-spring);
+}
+.name-tag::before {
+  content: "";
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  width: 34px;
+  height: 16px;
+  margin-left: -17px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.name-tag.is-dropped { top: 20px; pointer-events: auto; }
+.name-tag.is-dragging { cursor: grabbing; transition: none; }
+.name-tag-photo {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  margin: 0 auto 0.6rem;
+}
+.name-tag-name {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.name-tag-role {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 10px;
+  color: var(--faint);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
 /* ---------- gate ---------- */
 body.locked { overflow: hidden; }
 body.locked .nav { opacity: 0.25; pointer-events: none; }

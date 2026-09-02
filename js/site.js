@@ -111,7 +111,59 @@
     }, Math.max(12, Math.round(500 / text.length)));
   }
 
-  function initCard(onAccepted) {
+  function initNameTag() {
+    var tag = document.getElementById('name-tag');
+    if (!tag) { return null; }
+
+    var dragging = false;
+    var originX = 0, originY = 0;
+    var dx = 0, dy = 0;
+    var lastX = 0, lastMoveTime = 0, velocityX = 0;
+
+    function paint(tilt) {
+      tag.style.transform = 'translate3d(' + dx + 'px,' + dy + 'px,0) rotate(' + tilt + 'deg)';
+    }
+
+    tag.addEventListener('pointerdown', function (event) {
+      dragging = true;
+      originX = event.clientX - dx;
+      originY = event.clientY - dy;
+      lastX = event.clientX;
+      lastMoveTime = Date.now();
+      velocityX = 0;
+      tag.classList.add('is-dragging');
+      tag.setPointerCapture(event.pointerId);
+    });
+
+    tag.addEventListener('pointermove', function (event) {
+      if (!dragging) { return; }
+      var now = Date.now();
+      var elapsed = Math.max(1, now - lastMoveTime);
+      velocityX = (event.clientX - lastX) / elapsed * 16;
+      lastX = event.clientX;
+      lastMoveTime = now;
+      dx = event.clientX - originX;
+      dy = event.clientY - originY;
+      paint(Core.tiltFromVelocity(velocityX, 12));
+    });
+
+    function release(event) {
+      if (!dragging) { return; }
+      dragging = false;
+      tag.classList.remove('is-dragging');
+      if (tag.hasPointerCapture && tag.hasPointerCapture(event.pointerId)) {
+        tag.releasePointerCapture(event.pointerId);
+      }
+    }
+    tag.addEventListener('pointerup', release);
+    tag.addEventListener('pointercancel', release);
+
+    return {
+      drop: function () { tag.classList.add('is-dropped'); }
+    };
+  }
+
+  function initCard(onAccepted, onGranted) {
     var card = document.getElementById('id-card');
     var reader = document.getElementById('card-reader');
     var led = document.getElementById('reader-led');
@@ -157,13 +209,16 @@
 
       setTimeout(function () {
         if (led) { led.classList.add('is-granted'); }
+        if (onGranted) { onGranted(); }
       }, 600);
 
       setTimeout(function () {
         var hint = document.getElementById('drag-hint');
         if (hint) { hint.style.opacity = '0'; }
         if (readout) {
-          typeOut(readout, 'Access granted · Welcome', onAccepted);
+          typeOut(readout, 'Access granted · Welcome', function () {
+            setTimeout(function () { if (onAccepted) { onAccepted(); } }, 500);
+          });
         } else if (onAccepted) {
           onAccepted();
         }
@@ -374,8 +429,11 @@
     renderWork();
     renderHome();
     var lock = initGate();
+    var nameTag = initNameTag();
     initCard(function () {
       if (lock) { lock.unlock('swipe'); }
+    }, function () {
+      if (nameTag) { nameTag.drop(); }
     });
     initReveals();
     initCounters();
@@ -391,6 +449,7 @@
     renderWork: renderWork,
     renderHome: renderHome,
     initCard: initCard,
+    initNameTag: initNameTag,
     initGate: initGate,
     initCounters: initCounters,
     initParallax: initParallax,
