@@ -132,3 +132,36 @@ test('the USC and BU facts render exactly as the resume states them', () => {
   assert.ok(work.includes('B.A. Computer Science'));
   assert.ok(work.includes('College of Arts and Sciences'));
 });
+
+test('the card/reader stack shares one vertical anchor, above the name block', () => {
+  // The card used to sit at top:50% while .hero-name is bottom-anchored, and
+  // they collided on common laptop viewport heights. All four elements in the
+  // card stack must share --card-anchor so a future tweak can't move one
+  // without the others, and the anchor itself must sit in the upper hero
+  // rather than dead center.
+  const css = read('styles.css');
+
+  const heroBlock = /\.hero\s*\{[^}]*\}/.exec(css)[0];
+  const anchorMatch = /--card-anchor:\s*([\d.]+)%/.exec(heroBlock);
+  assert.ok(anchorMatch, '.hero must define --card-anchor');
+  const anchor = parseFloat(anchorMatch[1]);
+  assert.ok(anchor < 40, `--card-anchor (${anchor}%) should sit in the upper hero, not dead center`);
+
+  for (const selector of ['\\.id-card', '\\.card-reader', '\\.drag-hint', '\\.readout']) {
+    const rule = new RegExp(selector + '\\s*\\{[^}]*\\}', 's');
+    const block = rule.exec(css);
+    assert.ok(block, `${selector} rule not found`);
+    assert.match(
+      block[0], /top:\s*var\(--card-anchor\)/,
+      `${selector} must anchor to var(--card-anchor), not a hardcoded top`
+    );
+  }
+});
+
+test('the location is reported as Los Angeles everywhere it appears', () => {
+  const home = read('index.html');
+  const contact = read('contact.html');
+  assert.ok(!/Arcadia/.test(home + contact), 'stale Arcadia reference remains');
+  assert.match(home, /Los Angeles, CA/);
+  assert.match(contact, /Los Angeles, CA/);
+});

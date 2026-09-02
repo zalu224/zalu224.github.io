@@ -268,8 +268,9 @@ a.contact-row:hover .contact-arrow { transform: translateX(4px); }
   overflow: hidden;
   display: flex;
   align-items: flex-end;
+  --card-anchor: 26%;
 }
-.hero-name { position: relative; z-index: 10; max-width: 32rem; padding: 0 2rem 6rem; }
+.hero-name { position: relative; z-index: 10; max-width: 32rem; padding: 0 2rem 4rem; }
 .hero-name h1 { font-size: clamp(3rem, 8vw, 5.5rem); line-height: 1.05; }
 .hero-line { max-width: 26rem; margin-top: 1rem; font-size: 0.95rem; }
 .hero-cta { display: flex; align-items: center; gap: 1rem; margin-top: 1.5rem; }
@@ -389,7 +390,7 @@ a.contact-row:hover .contact-arrow { transform: translateX(4px); }
 /* ---------- id card ---------- */
 .id-card {
   position: absolute;
-  top: 50%;
+  top: var(--card-anchor);
   left: 22%;
   width: 340px;
   height: 214px;
@@ -463,7 +464,7 @@ a.contact-row:hover .contact-arrow { transform: translateX(4px); }
 /* ---------- reader ---------- */
 .card-reader {
   position: absolute;
-  top: 50%;
+  top: var(--card-anchor);
   right: 8%;
   width: 96px;
   height: 260px;
@@ -502,10 +503,10 @@ a.contact-row:hover .contact-arrow { transform: translateX(4px); }
 }
 .reader-led.is-granted { background: var(--led); box-shadow: 0 0 14px var(--led); }
 
-.drag-hint { position: absolute; top: 50%; right: 8%; margin-top: 145px; text-align: right; }
+.drag-hint { position: absolute; top: var(--card-anchor); right: 8%; margin-top: 145px; text-align: right; }
 .readout {
   position: absolute;
-  top: 50%;
+  top: var(--card-anchor);
   right: 8%;
   margin-top: 170px;
   font-size: 10px;
