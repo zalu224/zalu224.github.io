@@ -1,0 +1,53 @@
+Aaron Lu
+626-348-3399 | aaronlu6@gmail.com | linkedin.com/in/aaronlu224/ | zalu224.github.io/
+EDUCATION
+University of Southern California – Viterbi School of Engineering
+M.S. in Computer Science – Artificial Intelligence 2026 - Present
+Boston University – College of Arts and Sciences
+B.A. in Computer Science Graduated May 2025
+Skills: Java, Python, React, Node, JavaScript, HTML, SQL, MongoDB, XML, C, Google APIs, AWS
+ML / AI: PyTorch, Scikit-learn, BERT, LoRA, Vectorization, NLTK, Transformers, Q-Learning
+EXPERIENCE
+AlphaBiz - AI Intern July 2025 - December 2025
+●
+Integrated AI confidential information memorandum (CIM) enhancement into an M&A platform designed to
+support business evaluation and valuation workflows.
+●
+Built secure, event-driven AI processing workflows using AWS Lambda and Kinesis.
+●
+Collaborated translating business requirements to product functionality.
+Interesting World - Machine Learning Intern June 2024 - Aug 2024
+●
+Developed a 7-class NLP classification system for automated user-generated content moderation, achieving 88%
+accuracy.
+●
+Experimented with BERT, LoRA, FastText, Word2Vec, and Hugging Face Transformers to evaluate different
+approaches to text representation and classification.
+●
+Built preprocessing and tokenization pipelines for multilingual and emoji-rich text. Reduced model training time by
+50% through dynamic padding and LoRA.
+Rivera Food Service Inc. - Project Manager (Part-Time) Sep 2021 – July 2026
+●
+Worked with vendors and engineers to define technical requirements for the business systems integrating sales,
+pricing, inventory, and replenishment data.
+●
+Coordinated data integration and analytic requirements between business stakeholders and developers.
+PROJECTS
+NYC Urban Air Quality Analysis | Python, Scikit-learn, NLP 2024
+●
+Processed 650,000+ records from NYC’s street-tree dataset alongside pollution data to analyze relationships
+between urban forestry and air quality.
+●
+Engineered features and developed data-analysis like heat maps, and correlation graphs to identify relationships
+between environmental variables.
+●
+Built a Flask application with interactive geographic visualization for data exploration and a heatmap visualization
+of pollution patterns and tree health. Found that trees with diameters 60 inches correlate with 30% lower PM2.5
+levels
+Fake News Detection | Python, Pandas, Flask 2024
+●
+Built NLP classification system trained on 20,000+ real-world news articles using TF-IDF and logistic regression.
+●
+Implemented preprocessing, normalization, feature extraction and model evaluation pipelines.
+●
+Achieved 96% accuracy, 97% recall and 97% F1-score.
