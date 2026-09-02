@@ -268,11 +268,14 @@ a.contact-row:hover .contact-arrow { transform: translateX(4px); }
   overflow: hidden;
   display: flex;
   align-items: flex-end;
-  --card-anchor: 26%;
+  justify-content: space-between;
+  gap: 2rem;
 }
-.hero-name { position: relative; z-index: 10; max-width: 32rem; padding: 0 2rem 4rem; }
+.hero-name { position: relative; z-index: 10; max-width: 32rem; padding: 0 2rem 4rem; order: 1; }
 .hero-name h1 { font-size: clamp(3rem, 8vw, 5.5rem); line-height: 1.05; }
-.hero-line { max-width: 26rem; margin-top: 1rem; font-size: 0.95rem; line-height: 1.6; text-wrap: balance; }
+.hero-line { max-width: 26rem; margin-top: 1rem; font-size: 0.95rem; line-height: 1.6; }
+.hero-line p { margin: 0 0 0.35rem; }
+.hero-line p:last-child { margin-bottom: 0; }
 .hero-cta { display: flex; align-items: center; gap: 1rem; margin-top: 1.5rem; }
 .pill {
   padding: 0.65rem 1.25rem;
@@ -384,17 +387,24 @@ a.contact-row:hover .contact-arrow { transform: translateX(4px); }
 }
 
 /* ---------- card stage ---------- */
-.card-stage { position: absolute; inset: 0; z-index: 5; pointer-events: none; }
-.card-stage > * { pointer-events: auto; }
+.card-stage {
+  position: relative;
+  z-index: 5;
+  flex: 0 0 auto;
+  width: 480px;
+  height: 380px;
+  margin: 0 2rem 4rem 0;
+  order: 2;
+}
 
 /* ---------- id card ---------- */
 .id-card {
   position: absolute;
-  top: var(--card-anchor);
-  left: 22%;
+  top: 50%;
+  left: 0;
   width: 340px;
   height: 214px;
-  margin: -107px 0 0 -170px;
+  margin-top: -107px;
   padding: 0;
   display: flex;
   flex-direction: column;
@@ -464,8 +474,8 @@ a.contact-row:hover .contact-arrow { transform: translateX(4px); }
 /* ---------- reader ---------- */
 .card-reader {
   position: absolute;
-  top: var(--card-anchor);
-  right: 8%;
+  top: 50%;
+  right: 0;
   width: 96px;
   height: 260px;
   margin-top: -130px;
@@ -503,11 +513,11 @@ a.contact-row:hover .contact-arrow { transform: translateX(4px); }
 }
 .reader-led.is-granted { background: var(--led); box-shadow: 0 0 14px var(--led); }
 
-.drag-hint { position: absolute; top: var(--card-anchor); right: 8%; margin-top: 145px; text-align: right; }
+.drag-hint { position: absolute; top: 50%; right: 0; margin-top: 145px; text-align: right; }
 .readout {
   position: absolute;
-  top: var(--card-anchor);
-  right: 8%;
+  top: 50%;
+  right: 0;
   margin-top: 170px;
   font-size: 10px;
   letter-spacing: 0.2em;
@@ -583,15 +593,23 @@ body:not(.locked) .scroll-cue { opacity: 0; pointer-events: none; }
   .featured-grid { grid-template-columns: 1fr; }
   .stat-grid { grid-template-columns: 1fr; gap: 1.5rem; }
   .background { padding: 4rem 1.5rem; }
-  .hero { align-items: flex-start; flex-direction: column; }
-  .card-stage { position: relative; width: 100%; height: 424px; }
+}
+
+/* The name/card two-column layout needs real horizontal room (~1080px+,
+   by estimate) or the columns get too cramped. Below that threshold,
+   stack the card above the name instead — covers phones and any
+   narrower desktop or tablet window with the same fixed-pixel geometry,
+   so there is no shared vh/percentage math between the two blocks to
+   get wrong. */
+@media (max-width: 1180px) {
+  .hero { align-items: flex-start; flex-direction: column; justify-content: flex-start; gap: 0; }
+  .hero-name { order: 2; padding: 1rem 1.5rem 2rem; }
+  .card-stage { position: relative; width: 100%; height: 424px; margin: 0; order: 1; }
   .id-card { left: 50%; top: 5rem; width: 280px; height: 176px; margin: 0 0 0 -140px; }
   .card-reader { top: 18rem; bottom: auto; left: 50%; right: auto; width: 260px; height: 96px; margin: 0 0 0 -130px; }
   .reader-slit { top: 12px; left: 14px; right: 14px; }
   .reader-led { bottom: 12px; }
   .drag-hint, .readout { left: 50%; right: auto; top: auto; bottom: 0.5rem; margin: 0 0 0 -130px; text-align: center; }
-  .hero-name { position: relative; padding: 1rem 1.5rem 2rem; }
-
 }
 
 /* ---------- reduced motion ---------- */

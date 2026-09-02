@@ -138,30 +138,28 @@ test('the USC and BU facts render exactly as the resume states them', () => {
   assert.ok(work.includes('College of Arts and Sciences'));
 });
 
-test('the card/reader stack shares one vertical anchor, above the name block', () => {
-  // The card used to sit at top:50% while .hero-name is bottom-anchored, and
-  // they collided on common laptop viewport heights. All four elements in the
-  // card stack must share --card-anchor so a future tweak can't move one
-  // without the others, and the anchor itself must sit in the upper hero
-  // rather than dead center.
+test('the name and card never share a column: they are separate, oppositely-ordered flex items', () => {
+  // The card used to be absolutely positioned with inset:0 over the whole
+  // hero, sharing space with the bottom-anchored .hero-name and colliding
+  // with it on realistic content heights (the eyebrow line in particular).
+  // Fixed by making card-stage its own explicitly-sized flex column,
+  // structurally separate from .hero-name rather than sharing its box.
   const css = read('styles.css');
 
   const heroBlock = /\.hero\s*\{[^}]*\}/.exec(css)[0];
-  const anchorMatch = /--card-anchor:\s*([\d.]+)%/.exec(heroBlock);
-  assert.ok(anchorMatch, '.hero must define --card-anchor');
-  const anchor = parseFloat(anchorMatch[1]);
-  assert.ok(anchor < 40, `--card-anchor (${anchor}%) should sit in the upper hero, not dead center`);
+  assert.match(heroBlock, /display:\s*flex/);
+  assert.match(heroBlock, /justify-content:\s*space-between/, '.hero must space its two columns apart, not stack them');
 
-  for (const selector of ['\\.id-card', '\\.card-reader', '\\.drag-hint', '\\.readout']) {
-    const rule = new RegExp(selector + '\\s*\\{[^}]*\\}', 's');
-    const block = rule.exec(css);
-    assert.ok(block, `${selector} rule not found`);
-    assert.match(
-      block[0], /top:\s*var\(--card-anchor\)/,
-      `${selector} must anchor to var(--card-anchor), not a hardcoded top`
-    );
-  }
+  const stageBlock = /\.card-stage\s*\{[^}]*\}/.exec(css)[0];
+  assert.doesNotMatch(stageBlock, /inset:\s*0/, 'card-stage must not span the full hero any more');
+  assert.match(stageBlock, /width:\s*\d/, 'card-stage needs its own explicit width to form a real column');
+  assert.match(stageBlock, /height:\s*\d/, 'card-stage needs its own explicit height to form a real column');
+
+  const nameOrder = parseFloat(/order:\s*(\d+)/.exec(/\.hero-name\s*\{[^}]*\}/.exec(css)[0])[1]);
+  const stageOrder = parseFloat(/order:\s*(\d+)/.exec(stageBlock)[1]);
+  assert.ok(nameOrder < stageOrder, 'on the wide layout, the name column must render before the card column');
 });
+
 
 test('the location is reported as Los Angeles everywhere it appears', () => {
   const home = read('index.html');
@@ -171,42 +169,47 @@ test('the location is reported as Los Angeles everywhere it appears', () => {
   assert.match(contact, /Los Angeles, CA/);
 });
 
-test('the mobile hero stacks the card above the name, not beside it', () => {
-  // .hero has no flex-direction (defaults to row) and only .hero-name is
-  // in-flow on desktop (card-stage is absolutely positioned there). On
-  // mobile, card-stage switches to position:relative and becomes a second
-  // in-flow flex item — without an explicit column direction the two would
-  // lay out side by side, and without an explicit width, an absolutely-
-  // positioned-only card-stage has zero intrinsic width, collapsing every
-  // percentage-based offset inside it (id-card, card-reader, hints).
+test('below the two-column threshold, the card stacks above the name with swapped order', () => {
   const css = read('styles.css');
-  const mobile = /@media \(max-width: 768px\) \{([\s\S]*?)\n\}/.exec(css)[1];
+  const stacked = /@media \(max-width: 1180px\) \{([\s\S]*?)\n\}/.exec(css)[1];
 
-  const heroRule = /\.hero\s*\{[^}]*\}/.exec(mobile);
-  assert.ok(heroRule, '.hero must be overridden in the mobile block');
-  assert.match(heroRule[0], /flex-direction:\s*column/, 'mobile .hero must stack its children in a column');
+  const heroRule = /\.hero\s*\{[^}]*\}/.exec(stacked);
+  assert.ok(heroRule, '.hero must be overridden below the two-column threshold');
+  assert.match(heroRule[0], /flex-direction:\s*column/, 'stacked .hero must lay its children out in a column');
 
-  const stageRule = /\.card-stage\s*\{[^}]*\}/.exec(mobile);
-  assert.ok(stageRule, '.card-stage must be overridden in the mobile block');
-  assert.match(stageRule[0], /width:\s*100%/, 'mobile .card-stage needs an explicit width or it collapses to zero');
+  const stageRule = /\.card-stage\s*\{[^}]*\}/.exec(stacked);
+  assert.ok(stageRule, '.card-stage must be overridden below the two-column threshold');
+  assert.match(stageRule[0], /width:\s*100%/, 'stacked .card-stage needs an explicit width or it collapses to zero');
+
+  const nameOrder = parseFloat(/order:\s*(\d+)/.exec(/\.hero-name\s*\{[^}]*\}/.exec(stacked)[0])[1]);
+  const stageOrder = parseFloat(/order:\s*(\d+)/.exec(stageRule[0])[1]);
+  assert.ok(stageOrder < nameOrder, 'stacked: the card column must render before (above) the name');
 });
 
-test('the mobile card stack fits without overlapping the fixed nav or itself', () => {
+test('the wide-layout-only rules do not leak into the general mobile block, and vice versa', () => {
+  const css = read('styles.css');
+  const general = /@media \(max-width: 768px\) \{([\s\S]*?)\n\}/.exec(css)[1];
+  const stacked = /@media \(max-width: 1180px\) \{([\s\S]*?)\n\}/.exec(css)[1];
+  assert.ok(!/\.hero\b/.test(general), 'hero stacking rules belong in the 1180px block, not the 768px one');
+  assert.ok(!/\.coursework-grid/.test(stacked), 'general component rules belong in the 768px block, not the 1180px one');
+});
+
+test('the stacked mobile card fits without overlapping the fixed nav or itself', () => {
   // Fixed-pixel geometry, modeled and verified before implementation:
   // nav bottom edge ~62px, card top 80px (18px clear), card bottom 256px,
   // reader top 288px (32px gap), reader bottom 384px, stage 424px tall
   // (40px left for the hint/readout text below the reader).
   const css = read('styles.css');
-  const mobile = /@media \(max-width: 768px\) \{([\s\S]*?)\n\}/.exec(css)[1];
+  const stacked = /@media \(max-width: 1180px\) \{([\s\S]*?)\n\}/.exec(css)[1];
   const px = (block, prop) => {
     const m = new RegExp(prop + ':\\s*(-?[\\d.]+)(px|rem)').exec(block);
     if (!m) { return null; }
     return m[2] === 'rem' ? parseFloat(m[1]) * 16 : parseFloat(m[1]);
   };
 
-  const stage = /\.card-stage\s*\{[^}]*\}/.exec(mobile)[0];
-  const card = /\.id-card\s*\{[^}]*\}/.exec(mobile)[0];
-  const reader = /\.card-reader\s*\{[^}]*\}/.exec(mobile)[0];
+  const stage = /\.card-stage\s*\{[^}]*\}/.exec(stacked)[0];
+  const card = /\.id-card\s*\{[^}]*\}/.exec(stacked)[0];
+  const reader = /\.card-reader\s*\{[^}]*\}/.exec(stacked)[0];
 
   const stageHeight = px(stage, 'height');
   const cardTop = px(card, 'top');
@@ -220,10 +223,22 @@ test('the mobile card stack fits without overlapping the fixed nav or itself', (
   assert.ok(stageHeight >= readerTop + readerHeight, `card-stage (${stageHeight}px) must be tall enough to contain the reader (bottom ${readerTop + readerHeight}px)`);
 });
 
-test('the hero bio line balances its line breaks for even reading', () => {
+test('the hero bio line is spaced into its own lines, with no trailing "actually use"', () => {
+  const home = read('index.html');
+  const block = /<div class="hero-line">([\s\S]*?)<\/div>/.exec(home);
+  assert.ok(block, 'hero-line must be a container of separate lines, not a single paragraph');
+
+  const lines = [...block[1].matchAll(/<p>([^<]*)<\/p>/g)].map((m) => m[1]);
+  assert.deepStrictEqual(lines, [
+    'Technical Product Manager with an engineering core &mdash;',
+    'M.S. Computer Science (AI) at USC,',
+    'Boston University CS &rsquo;25.',
+    'I turn ML and engineering depth into products.'
+  ]);
+  assert.ok(!/actually use/.test(home), 'the trailing "people actually use" phrase should be dropped');
+
   const css = read('styles.css');
-  const rule = /\.hero-line\s*\{[^}]*\}/.exec(css)[0];
-  assert.match(rule, /text-wrap:\s*balance/);
+  assert.match(css, /\.hero-line p\s*\{[^}]*margin:/, 'the individual lines need their own spacing rule');
 });
 
 test('the site is positioned as a Technical Product Manager', () => {
