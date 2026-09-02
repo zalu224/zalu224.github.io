@@ -92,7 +92,12 @@ test('no corrected-away facts from the old site survive anywhere', () => {
     [/666,000/, 'the street-tree figure is 650,000+'],
     [/60% and 88%/, 'that garbled bullet was two separate numbers'],
     [/AlphaBiz[^.]{0,40}Present/i, 'AlphaBiz ended Dec 2025'],
-    [/previously a Computer Science student/i, 'the About copy now leads with the present']
+    [/previously a Computer Science student/i, 'the About copy now leads with the present'],
+    [/Software Engineer\s*(&middot;|·)\s*ML/, 'the card now reads Technical Product Manager, not Software Engineer · ML'],
+    [/Machine Learning (&amp;|&)\s*Product Engineering/, 'the home title no longer leads with engineering'],
+    [/I build machine learning systems and ship the products/, 'the old engineering-first hero line was replaced'],
+    [/Design (&amp;|&)\s*build/, "project roles now read 'Product & engineering'"],
+    [/building Pok(&eacute;|é)cha<\/span>/, "the Current stat now reads 'Technical PM', not a build-status label"]
   ];
   for (const [re, why] of stale) {
     assert.ok(!re.test(SHIPPED), `stale content found (${why}): ${re}`);
@@ -219,4 +224,35 @@ test('the hero bio line balances its line breaks for even reading', () => {
   const css = read('styles.css');
   const rule = /\.hero-line\s*\{[^}]*\}/.exec(css)[0];
   assert.match(rule, /text-wrap:\s*balance/);
+});
+
+test('the site is positioned as a Technical Product Manager', () => {
+  const home = read('index.html');
+  assert.match(home, /<title>Aaron Lu — Technical Product Manager<\/title>/);
+  assert.match(home, /Technical Product Manager/, 'the id-card must carry the new role label');
+  assert.match(home, /Product\s*&middot;\s*Strategy\s*&middot;\s*AI/, 'the hero eyebrow leads with Product');
+});
+
+test('resume-sourced job titles are never rewritten when repositioning the site', () => {
+  // The positioning pass (engineer -> technical PM) may reframe surrounding
+  // copy, but the actual employment history is a factual record and must
+  // stay exactly as the resume states it, company and title both.
+  const work = read('data/work.js');
+  const realRoles = [
+    ["company: 'AlphaBiz'", "role: 'AI Intern'"],
+    ["company: 'Interesting World'", "role: 'Machine Learning Intern'"],
+    ["company: 'Rivera Food Service Inc.'", "role: 'Project Manager, part-time'"]
+  ];
+  for (const [company, role] of realRoles) {
+    assert.ok(work.includes(company), `missing or renamed: ${company}`);
+    assert.ok(work.includes(role), `missing or renamed: ${role}`);
+  }
+});
+
+test('the skills list leads with product skills, grounded in the real work bullets', () => {
+  const work = read('data/work.js');
+  const site = read('js/site.js');
+  assert.match(work, /product:\s*\[/, 'data/work.js must define a product skills group');
+  const order = /skillGroupHtml\('Product[^']*'.*?\n.*?skillGroupHtml\('Machine learning/s;
+  assert.match(site, order, 'Product & collaboration must render before Machine learning & AI');
 });

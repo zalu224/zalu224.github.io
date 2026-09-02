@@ -52,6 +52,7 @@
   ];
 
   global.SKILLS = {
+    product: ['Product Requirements', 'Cross-functional Collaboration', 'Stakeholder Management', 'Vendor Coordination', 'Technical Roadmapping', 'Data-Informed Decisions'],
     languages: ['Java', 'Python', 'JavaScript', 'C', 'HTML', 'SQL'],
     ml: ['PyTorch', 'Scikit-learn', 'BERT', 'LoRA', 'Transformers', 'NLTK', 'Vectorization', 'Q-Learning'],
     data: ['React', 'Node.js', 'Next.js', 'MongoDB', 'MySQL', 'XML', 'AWS', 'Google APIs']

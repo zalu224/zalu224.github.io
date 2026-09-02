@@ -10,7 +10,7 @@
       tagline: 'Real graded cards. Published odds. Verifiable openings.',
       url: 'https://pokecha.xyz',
       period: '2026',
-      role: 'Design & build',
+      role: 'Product & engineering',
       stack: ['Next.js', 'TypeScript', 'Supabase'],
       bullets: [
         'Built a pack-opening platform backed by real graded trading-card slabs, where every opening resolves to a listed prize tier.',
@@ -27,7 +27,7 @@
       tagline: 'Crypto education and tiered community access.',
       url: 'https://ofye.org',
       period: '2026',
-      role: 'Design & build',
+      role: 'Product & engineering',
       stack: ['Next.js', 'Stripe'],
       bullets: [
         'Built a membership platform with four one-time-purchase tiers and Stripe checkout.',

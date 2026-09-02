@@ -69,8 +69,9 @@
     }
     if (global.SKILLS) {
       fill('skills-list',
-        skillGroupHtml('Languages & web', global.SKILLS.languages) +
+        skillGroupHtml('Product & collaboration', global.SKILLS.product) +
         skillGroupHtml('Machine learning & AI', global.SKILLS.ml) +
+        skillGroupHtml('Languages & web', global.SKILLS.languages) +
         skillGroupHtml('Frameworks & data', global.SKILLS.data));
     }
   }
