@@ -224,6 +224,43 @@ a.contact-row:hover .contact-arrow { transform: translateX(4px); }
 .course-link:hover { color: var(--accent); }
 .noscript-note { border: 1px solid var(--line); padding: 1rem; border-radius: 8px; }
 
+/* ---------- timeline ---------- */
+.timeline { border-left: 1px solid var(--line); padding-left: 2rem; margin-left: 0.5rem; }
+.timeline-item { position: relative; padding-bottom: 2.5rem; }
+.timeline-item::before {
+  content: "";
+  position: absolute;
+  left: -2.3rem;
+  top: 0.6rem;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 4px var(--paper);
+}
+.timeline-item .at { color: var(--faint); font-style: italic; }
+.timeline-item .meta {
+  font-size: 0.75rem;
+  color: var(--faint);
+  letter-spacing: 0.05em;
+  margin: 0.35rem 0 0.9rem;
+}
+
+/* ---------- education & skills ---------- */
+.edu-item { padding: 1rem 0; border-bottom: 1px solid var(--line); }
+.edu-item h3 { font-size: 1.15rem; }
+.edu-item .meta { font-family: var(--mono); font-size: 0.75rem; color: var(--faint); margin: 0.2rem 0 0; }
+.edu-item .degree { color: var(--muted); margin: 0.35rem 0 0; }
+.skill-group { padding: 1rem 0; border-bottom: 1px solid var(--line); }
+.skill-group h3 {
+  font-family: var(--mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--faint);
+  margin-bottom: 0.6rem;
+}
+
 /* ---------- responsive ---------- */
 @media (max-width: 768px) {
   .nav { gap: 1.1rem; padding: 0.6rem 1.1rem; }
@@ -233,6 +270,8 @@ a.contact-row:hover .contact-arrow { transform: translateX(4px); }
   .contact-label { flex-basis: 100%; }
   .coursework-grid { grid-template-columns: 1fr; gap: 0; }
   .project-card { padding: 1.25rem; }
+  .timeline { padding-left: 1.25rem; margin-left: 0.35rem; }
+  .timeline-item::before { left: -1.55rem; }
 }
 
 /* ---------- reduced motion ---------- */

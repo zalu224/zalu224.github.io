@@ -44,8 +44,40 @@
     }
   }
 
+  function educationHtml(entry) {
+    return '<article class="edu-item reveal">' +
+      '<h3 class="serif">' + Core.escapeHtml(entry.school) + '</h3>' +
+      '<p class="meta">' + Core.escapeHtml(entry.division) + ' \u00b7 ' +
+        Core.escapeHtml(entry.period) + '</p>' +
+      '<p class="degree">' + Core.escapeHtml(entry.degree) + '</p>' +
+    '</article>';
+  }
+
+  function skillGroupHtml(label, items) {
+    return '<div class="skill-group reveal">' +
+      '<h3>' + Core.escapeHtml(label) + '</h3>' +
+      Core.chipsHtml(items) +
+    '</div>';
+  }
+
+  function renderWork() {
+    if (global.WORK) {
+      fill('timeline', Core.sortWork(global.WORK).map(Core.workEntryHtml).join(''));
+    }
+    if (global.EDUCATION) {
+      fill('education-list', global.EDUCATION.map(educationHtml).join(''));
+    }
+    if (global.SKILLS) {
+      fill('skills-list',
+        skillGroupHtml('Languages & web', global.SKILLS.languages) +
+        skillGroupHtml('Machine learning & AI', global.SKILLS.ml) +
+        skillGroupHtml('Frameworks & data', global.SKILLS.data));
+    }
+  }
+
   function init() {
     renderProjects();
+    renderWork();
     initReveals();
   }
 
@@ -53,6 +85,7 @@
     prefersReducedMotion: prefersReducedMotion,
     initReveals: initReveals,
     renderProjects: renderProjects,
+    renderWork: renderWork,
     init: init
   };
 
