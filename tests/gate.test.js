@@ -149,3 +149,40 @@ test('initGate is inert on pages that are not gated', () => {
   const h = bootstrap({ locked: false });
   assert.strictEqual(h.sandbox.Site.initGate(), null);
 });
+
+test('a touchmove that starts on the card does not unlock the page', () => {
+  // Dragging the card on a touchscreen fires native touchmove events on
+  // window too. Without this exemption those would unlock instantly via
+  // the scroll-intent fallback, defeating the swipe interaction entirely.
+  const h = bootstrap();
+  h.sandbox.Site.initGate();
+  const cardDescendant = { closest: (sel) => (sel === '#id-card' ? cardDescendant : null) };
+  h.fire('touchmove', { target: cardDescendant });
+  assert.strictEqual(h.isLocked(), true, 'a touch that began on the card must not unlock');
+});
+
+test('a touchmove elsewhere on the page still unlocks', () => {
+  const h = bootstrap();
+  h.sandbox.Site.initGate();
+  const elsewhere = { closest: () => null };
+  h.fire('touchmove', { target: elsewhere });
+  assert.strictEqual(h.isLocked(), false);
+});
+
+test('a touchmove with no target (as a plain scroll gesture) still unlocks', () => {
+  const h = bootstrap();
+  h.sandbox.Site.initGate();
+  h.fire('touchmove', {});
+  assert.strictEqual(h.isLocked(), false);
+});
+
+test('touchmove unlock is not a one-shot: a card-originated touch does not consume it', () => {
+  const h = bootstrap();
+  h.sandbox.Site.initGate();
+  const cardDescendant = { closest: (sel) => (sel === '#id-card' ? cardDescendant : null) };
+  h.fire('touchmove', { target: cardDescendant });
+  assert.strictEqual(h.isLocked(), true, 'still locked after the card-originated touch');
+  const elsewhere = { closest: () => null };
+  h.fire('touchmove', { target: elsewhere });
+  assert.strictEqual(h.isLocked(), false, 'a later real scroll touch must still be able to unlock');
+});

@@ -258,7 +258,14 @@
         return function () { lock.unlock(reason); };
       };
       global.addEventListener('wheel', byIntent('scroll'), { passive: true, once: true });
-      global.addEventListener('touchmove', byIntent('touch'), { passive: true, once: true });
+      // A touch-drag on the card itself fires native touchmove events on window
+      // too. Without this check, starting the card drag would unlock instantly
+      // via the scroll-intent fallback instead of requiring the actual swipe.
+      global.addEventListener('touchmove', function (event) {
+        var target = event.target;
+        if (target && target.closest && target.closest('#id-card')) { return; }
+        lock.unlock('touch');
+      }, { passive: true });
       global.addEventListener('keydown', function (event) {
         if (Core.isUnlockKey(event.key)) { lock.unlock('keyboard'); }
       });

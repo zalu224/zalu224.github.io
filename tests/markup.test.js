@@ -165,3 +165,58 @@ test('the location is reported as Los Angeles everywhere it appears', () => {
   assert.match(home, /Los Angeles, CA/);
   assert.match(contact, /Los Angeles, CA/);
 });
+
+test('the mobile hero stacks the card above the name, not beside it', () => {
+  // .hero has no flex-direction (defaults to row) and only .hero-name is
+  // in-flow on desktop (card-stage is absolutely positioned there). On
+  // mobile, card-stage switches to position:relative and becomes a second
+  // in-flow flex item — without an explicit column direction the two would
+  // lay out side by side, and without an explicit width, an absolutely-
+  // positioned-only card-stage has zero intrinsic width, collapsing every
+  // percentage-based offset inside it (id-card, card-reader, hints).
+  const css = read('styles.css');
+  const mobile = /@media \(max-width: 768px\) \{([\s\S]*?)\n\}/.exec(css)[1];
+
+  const heroRule = /\.hero\s*\{[^}]*\}/.exec(mobile);
+  assert.ok(heroRule, '.hero must be overridden in the mobile block');
+  assert.match(heroRule[0], /flex-direction:\s*column/, 'mobile .hero must stack its children in a column');
+
+  const stageRule = /\.card-stage\s*\{[^}]*\}/.exec(mobile);
+  assert.ok(stageRule, '.card-stage must be overridden in the mobile block');
+  assert.match(stageRule[0], /width:\s*100%/, 'mobile .card-stage needs an explicit width or it collapses to zero');
+});
+
+test('the mobile card stack fits without overlapping the fixed nav or itself', () => {
+  // Fixed-pixel geometry, modeled and verified before implementation:
+  // nav bottom edge ~62px, card top 80px (18px clear), card bottom 256px,
+  // reader top 288px (32px gap), reader bottom 384px, stage 424px tall
+  // (40px left for the hint/readout text below the reader).
+  const css = read('styles.css');
+  const mobile = /@media \(max-width: 768px\) \{([\s\S]*?)\n\}/.exec(css)[1];
+  const px = (block, prop) => {
+    const m = new RegExp(prop + ':\\s*(-?[\\d.]+)(px|rem)').exec(block);
+    if (!m) { return null; }
+    return m[2] === 'rem' ? parseFloat(m[1]) * 16 : parseFloat(m[1]);
+  };
+
+  const stage = /\.card-stage\s*\{[^}]*\}/.exec(mobile)[0];
+  const card = /\.id-card\s*\{[^}]*\}/.exec(mobile)[0];
+  const reader = /\.card-reader\s*\{[^}]*\}/.exec(mobile)[0];
+
+  const stageHeight = px(stage, 'height');
+  const cardTop = px(card, 'top');
+  const cardHeight = px(card, 'height');
+  const readerTop = px(reader, 'top');
+  const readerHeight = px(reader, 'height');
+
+  const NAV_BOTTOM_EDGE = 62; // approx: 1rem top offset + pill height
+  assert.ok(cardTop > NAV_BOTTOM_EDGE, `card top (${cardTop}px) must clear the fixed nav (~${NAV_BOTTOM_EDGE}px)`);
+  assert.ok(readerTop >= cardTop + cardHeight, `reader (top ${readerTop}px) must not overlap the card (bottom ${cardTop + cardHeight}px)`);
+  assert.ok(stageHeight >= readerTop + readerHeight, `card-stage (${stageHeight}px) must be tall enough to contain the reader (bottom ${readerTop + readerHeight}px)`);
+});
+
+test('the hero bio line balances its line breaks for even reading', () => {
+  const css = read('styles.css');
+  const rule = /\.hero-line\s*\{[^}]*\}/.exec(css)[0];
+  assert.match(rule, /text-wrap:\s*balance/);
+});
