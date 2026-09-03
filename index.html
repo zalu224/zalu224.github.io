@@ -10,8 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@300;400;500;600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 </head>
-<body class="locked">
-<noscript><style>body.locked{overflow:auto}body.locked .nav{opacity:1;pointer-events:auto}body.locked #gated,body.locked #background{opacity:1}</style></noscript>
+<body>
 <nav class="nav">
   <a href="index.html" aria-current="page">Home</a>
   <a href="work.html">Work</a>
@@ -21,43 +20,19 @@
 
 <main>
   <section class="hero" id="hero">
-    <div class="scan-grid" aria-hidden="true" data-parallax="0.3">
-      <div class="scan-grid-lines"></div>
-      <div class="scan-line"></div>
-    </div>
-
-    <div class="card-stage" id="card-stage">
-      <button type="button" class="id-card" id="id-card"
-              aria-label="Access card. Drag it to the right, or press Enter, to enter the site.">
-        <span class="id-card-head mono"><span>Access Card</span></span>
-        <span class="id-card-body">
-          <img class="id-photo" src="img/image.png" alt="" width="72" height="88">
-          <span class="id-fields mono">
-            <span class="id-name">Zhong Wen Aaron Lu</span>
-            <span class="id-role">Technical Product Manager</span>
-            <span class="id-line">M.S. Computer Science &mdash; AI</span>
-            <span class="id-line">B.A. Computer Science &middot; BU &rsquo;25</span>
-          </span>
-        </span>
-        <span class="id-card-foot"><span class="barcode"></span><span class="id-num mono">ID 2025&middot;0506</span></span>
-      </button>
-
-      <p class="drag-hint eyebrow" id="drag-hint">Drag the card &rarr;</p>
-      <p class="readout mono" id="readout" role="status" aria-live="polite"></p>
-    </div>
-
+    <div class="tag-stage" id="tag-stage" aria-hidden="true"></div>
 
     <div class="lanyard" id="lanyard" aria-hidden="true">
       <svg class="lanyard-cord" preserveAspectRatio="none"><path id="lanyard-path" /></svg>
       <div class="name-tag" id="name-tag">
-        <span class="name-tag-clip"></span>
-        <span class="name-tag-strip"></span>
-        <img class="name-tag-photo" src="img/image.png" alt="" width="64" height="64">
+        <span class="name-tag-strip"><span class="name-tag-slot"></span></span>
+        <img class="name-tag-photo" src="img/image.png" alt="Aaron Lu" width="116" height="142">
         <span class="name-tag-name serif">Aaron Lu</span>
         <span class="name-tag-role mono">Technical Product Manager</span>
-        <span class="name-tag-foot mono">ID 2025&middot;0506</span>
       </div>
     </div>
+
+    <p class="drag-hint eyebrow" id="drag-hint">Drag the badge</p>
 
     <div class="scroll-cue" aria-hidden="true">
       <span>Scroll</span>
@@ -80,14 +55,14 @@
     </div>
   </section>
 
-  <div class="marquee" id="gated" aria-hidden="true">
+  <div class="marquee" aria-hidden="true">
     <div class="marquee-track">
       <span>Python &middot; PyTorch &middot; Next.js &middot; React &middot; Node.js &middot; Java &middot; Transformers &middot; BERT &middot; LoRA &middot; NLP &middot; Supabase &middot; AWS &middot; MongoDB &middot; SQL &middot;</span>
       <span>Python &middot; PyTorch &middot; Next.js &middot; React &middot; Node.js &middot; Java &middot; Transformers &middot; BERT &middot; LoRA &middot; NLP &middot; Supabase &middot; AWS &middot; MongoDB &middot; SQL &middot;</span>
     </div>
   </div>
 
-  <section class="background" id="background" aria-hidden="true">
+  <section class="background" id="background">
     <p class="eyebrow">About</p>
     <h2 class="reveal">Background</h2>
     <p class="reveal">I&rsquo;m a technical product manager in the making &mdash; a master&rsquo;s student in Computer Science at USC Viterbi, concentrating in Artificial Intelligence, and a 2025 Computer Science graduate of Boston University. My engineering background is the foundation for how I think about product: I&rsquo;ve trained the models and shipped the systems, so I know what&rsquo;s actually feasible to build.</p>

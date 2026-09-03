@@ -356,134 +356,19 @@ a.contact-row:hover .contact-arrow { transform: translateX(4px); }
 .text-link { font-family: var(--mono); font-size: 0.75rem; color: var(--accent); text-decoration: none; }
 .text-link:hover { text-decoration: underline; }
 
-/* ---------- scan grid ---------- */
-.scan-grid { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
-.scan-grid-lines {
-  position: absolute;
-  inset: -50% 0 0;
-  background-image:
-    repeating-linear-gradient(to right, rgba(20,20,25,.045) 0 1px, transparent 1px 60px),
-    repeating-linear-gradient(to bottom, rgba(20,20,25,.045) 0 1px, transparent 1px 60px);
-  transform: perspective(600px) rotateX(60deg);
-  transform-origin: center bottom;
-  -webkit-mask-image: radial-gradient(ellipse at 50% 80%, #000 20%, transparent 72%);
-  mask-image: radial-gradient(ellipse at 50% 80%, #000 20%, transparent 72%);
-}
-.scan-line {
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: var(--accent);
-  opacity: 0.12;
-  box-shadow: 0 0 24px 4px var(--accent);
-  animation: scan-sweep 8s linear infinite;
-}
-@keyframes scan-sweep {
-  from { transform: translateY(0); }
-  to { transform: translateY(100vh); }
-}
-
-/* ---------- card stage ---------- */
-.card-stage {
+/* ---------- badge stage ---------- */
+/* Reserves the right-hand column so the hanging badge reads as its own
+   element rather than crossing the name text. */
+.tag-stage {
   position: relative;
   z-index: 5;
   flex: 0 0 auto;
-  width: 540px;
+  width: 300px;
   height: 300px;
   margin: 0 auto 4rem auto;
   order: 2;
-}
-
-/* ---------- id card ---------- */
-.id-card {
-  position: absolute;
-  top: 50%;
-  left: 0;
-  width: 340px;
-  height: 214px;
-  margin-top: -107px;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  background: var(--surface);
-  box-shadow: 0 2px 6px rgba(20,20,25,.06), 0 18px 40px rgba(20,20,25,.10);
-  cursor: grab;
-  overflow: hidden;
-  touch-action: none;
-  text-align: left;
-  transition: transform 520ms var(--ease-spring), box-shadow 250ms ease, opacity 300ms ease;
-}
-.id-card.is-dragging {
-  cursor: grabbing;
-  transition: none;
-  box-shadow: 0 8px 16px rgba(20,20,25,.10), 0 32px 60px rgba(20,20,25,.18);
-}
-.id-card::after {
-  content: "";
-  position: absolute;
-  top: -60%;
-  left: -30%;
-  width: 40%;
-  height: 220%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,.85), transparent);
-  transform: rotate(20deg) translateX(-260%);
-  transition: transform 700ms ease;
   pointer-events: none;
 }
-.id-card:hover::after { transform: rotate(20deg) translateX(340%); }
-.id-card-head {
-  display: flex;
-  justify-content: space-between;
-  padding: 0.55rem 0.9rem;
-  background: var(--accent);
-  color: #fff;
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
-}
-.id-card-body { display: flex; gap: 0.9rem; padding: 0.9rem; flex: 1; }
-.id-photo { width: 72px; height: 88px; object-fit: cover; border-radius: 6px; border: 1px solid var(--line); }
-.id-fields { display: flex; flex-direction: column; gap: 0.22rem; }
-.id-name { font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
-.id-role { font-size: 10px; color: var(--faint); text-transform: uppercase; letter-spacing: 0.12em; }
-.id-line { font-size: 9px; color: var(--faint); text-transform: uppercase; letter-spacing: 0.08em; }
-.id-card-foot {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.45rem 0.9rem 0.65rem;
-  border-top: 1px solid var(--line);
-}
-.barcode {
-  flex: 1;
-  height: 20px;
-  background-image: repeating-linear-gradient(90deg,
-    var(--ink) 0 2px, transparent 2px 4px,
-    var(--ink) 4px 5px, transparent 5px 9px,
-    var(--ink) 9px 12px, transparent 12px 14px);
-  opacity: 0.75;
-}
-.id-num { font-size: 9px; color: var(--faint); letter-spacing: 0.1em; }
-
-.drag-hint { position: absolute; left: 0; right: 0; bottom: 8px; text-align: center; }
-.readout {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -14px;
-  text-align: center;
-  font-size: 10px;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--accent);
-  min-height: 1em;
-}
-.id-card.is-ready { box-shadow: 0 8px 16px rgba(20,20,25,.10), 0 0 0 3px rgba(31,63,212,.35); }
-.id-card.is-consumed { opacity: 0; }
 
 /* ---------- lanyard badge ---------- */
 .lanyard {
@@ -509,18 +394,21 @@ a.contact-row:hover .contact-arrow { transform: translateX(4px); }
   stroke-linecap: round;
   stroke-linejoin: round;
 }
+.drag-hint { position: absolute; right: 2rem; bottom: 2.5rem; z-index: 10; text-align: right; margin: 0; }
+
+/* ---------- lanyard badge ---------- */
 .name-tag {
   position: absolute;
   left: 0;
   top: 0;
-  width: 216px;
-  margin-left: -108px;
+  width: 224px;
+  margin-left: -112px;
   transform-origin: 50% 0;
-  padding: 0 0 1.5rem;
+  padding: 0 0 1.4rem;
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 14px;
-  box-shadow: 0 18px 40px rgba(20, 20, 25, 0.16), 0 2px 8px rgba(20, 20, 25, 0.08);
+  border-radius: 16px;
+  box-shadow: 0 22px 48px rgba(20, 20, 25, 0.16), 0 2px 6px rgba(20, 20, 25, 0.06);
   text-align: center;
   overflow: hidden;
   cursor: grab;
@@ -529,63 +417,53 @@ a.contact-row:hover .contact-arrow { transform: translateX(4px); }
   will-change: transform;
 }
 .name-tag.is-dragging { cursor: grabbing; }
+
+/* Accent header with a punched slot the cord passes through. */
 .name-tag-strip {
-  display: block;
-  height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 42px;
+  margin-bottom: 1.4rem;
   background: var(--accent);
 }
-.name-tag-clip {
-  position: absolute;
-  top: 14px;
-  left: 50%;
-  width: 62px;
-  height: 12px;
-  margin-left: -31px;
-  border-radius: 6px;
-  background: var(--paper);
-  border: 1px solid rgba(255, 255, 255, 0.35);
+.name-tag-slot {
+  display: block;
+  width: 56px;
+  height: 8px;
+  border-radius: 4px;
+  background: rgba(10, 10, 20, 0.32);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.45);
 }
+
+/* Portrait crop, so the whole headshot reads top to bottom rather than
+   being cut off by a circle. */
 .name-tag-photo {
-  width: 104px;
-  height: 104px;
+  width: 116px;
+  height: 142px;
   object-fit: cover;
-  border-radius: 50%;
-  border: 3px solid var(--surface);
-  box-shadow: 0 0 0 1px var(--line);
-  margin: -52px auto 0.9rem;
-  position: relative;
+  object-position: center;
+  border-radius: 10px;
+  margin: 0 auto 1.1rem;
+  background: var(--paper);
 }
 .name-tag-name {
   display: block;
-  font-size: 1.5rem;
-  line-height: 1.15;
+  font-size: 1.6rem;
+  line-height: 1.1;
 }
 .name-tag-role {
   display: block;
-  margin-top: 0.45rem;
-  padding: 0 0.9rem;
-  font-size: 9px;
-  line-height: 1.6;
-  color: var(--faint);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-.name-tag-foot {
-  display: block;
-  margin: 1.4rem 1.1rem 0;
-  padding-top: 0.9rem;
+  margin: 0.5rem 1rem 0;
+  padding-top: 0.7rem;
   border-top: 1px solid var(--line);
   font-size: 9px;
+  line-height: 1.7;
   color: var(--faint);
   letter-spacing: 0.16em;
+  text-transform: uppercase;
 }
 
-/* ---------- gate ---------- */
-body.locked { overflow: hidden; }
-body.locked .nav { opacity: 0.25; pointer-events: none; }
-body.locked #gated,
-body.locked #background { opacity: 0; }
-#gated, #background { transition: opacity 600ms ease; }
 .scroll-cue {
   position: absolute;
   bottom: 2rem;
@@ -609,7 +487,6 @@ body.locked #background { opacity: 0; }
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(4px); }
 }
-body:not(.locked) .scroll-cue { opacity: 0; pointer-events: none; }
 
 /* ---------- stagger & page transitions ---------- */
 .stagger > .reveal:nth-child(1) { transition-delay: 0ms; }
@@ -648,40 +525,22 @@ body:not(.locked) .scroll-cue { opacity: 0; pointer-events: none; }
   .background { padding: 4rem 1.5rem; }
 }
 
-/* The name/card two-column layout needs real horizontal room (~1080px+,
-   by estimate) or the columns get too cramped. Below that threshold,
-   stack the card above the name instead — covers phones and any
-   narrower desktop or tablet window with the same fixed-pixel geometry,
-   so there is no shared vh/percentage math between the two blocks to
-   get wrong. */
+/* Two columns need real horizontal room; below that, the badge hangs
+   above the name instead of beside it. */
 @media (max-width: 1180px) {
   .hero { align-items: flex-start; flex-direction: column; justify-content: flex-start; gap: 0; }
   .hero-name { order: 2; padding: 1rem 1.5rem 2rem; }
-  .card-stage { position: relative; width: 100%; height: 260px; margin: 0; order: 1; }
-
-  /* Card sits near the left edge so there is open room to swipe it right. */
-  .id-card { left: 1.5rem; right: auto; top: 50%; width: 280px; height: 176px; margin: -88px 0 0 0; }
+  .tag-stage { width: 100%; height: 250px; margin: 0; order: 1; }
+  .drag-hint { left: 0; right: 0; bottom: auto; top: 5.5rem; text-align: center; }
 }
 
-/* Phones: same left-to-right arrangement, scaled to fit a 320px viewport.
-   Pair is 210 + 20 gap + 56 = 286 wide. */
 @media (max-width: 768px) {
-  .card-stage { height: 210px; }
-  .id-card { left: 1rem; width: 200px; height: 126px; margin: -63px 0 0 0; }
-  .name-tag { width: 168px; margin-left: -84px; padding-bottom: 1.1rem; }
-  .name-tag-strip { height: 38px; }
-  .name-tag-photo { width: 82px; height: 82px; margin: -41px auto 0.7rem; }
-  .name-tag-name { font-size: 1.2rem; }
-  .name-tag-foot { margin-top: 1rem; padding-top: 0.7rem; }
-  .id-card-head { padding: 0.4rem 0.6rem; font-size: 8px; letter-spacing: 0.14em; }
-  .id-card-body { gap: 0.5rem; padding: 0.5rem 0.6rem; }
-  .id-photo { width: 44px; height: 54px; }
-  .id-name { font-size: 9px; letter-spacing: 0.04em; }
-  .id-role { font-size: 7px; letter-spacing: 0.08em; }
-  .id-line { display: none; }
-  .id-card-foot { padding: 0.3rem 0.6rem 0.4rem; }
-  .barcode { height: 12px; }
-  .id-num { font-size: 7px; }
+  .tag-stage { height: 220px; }
+  .name-tag { width: 176px; margin-left: -88px; padding-bottom: 1.1rem; }
+  .name-tag-strip { height: 36px; }
+  .name-tag-photo { width: 92px; height: 112px; }
+  .name-tag-name { font-size: 1.25rem; }
+  .name-tag-role { font-size: 8px; }
 }
 
 /* ---------- reduced motion ---------- */

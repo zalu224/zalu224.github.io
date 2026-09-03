@@ -1,7 +1,7 @@
 'use strict';
-// Drives js/site.js's initCard state machine against a minimal DOM stub.
-// Covers what a unit test can reach: tilt, spring-back, snap detection,
-// the accept sequence, and idempotence. Visual polish still needs a browser.
+// Drives js/site.js's initLanyard against a minimal DOM stub: the drop,
+// the rope simulation driving the badge, dragging, swing-back on release,
+// and the reduced-motion path. Visual polish still needs a browser.
 const test = require('node:test');
 const assert = require('node:assert');
 const fs = require('node:fs');
@@ -50,18 +50,15 @@ function endOfPath(path) {
 
 function bootstrap(opts) {
   const options = opts || {};
-  const card = makeEl('id-card', { left: 200, top: 300, width: 340, height: 214 });
-  const readout = makeEl('readout', { left: 0, top: 0, width: 0, height: 0 });
   const hint = makeEl('drag-hint', { left: 0, top: 0, width: 0, height: 0 });
   const nameTag = makeEl('name-tag', { left: 0, top: 0, width: 156, height: 200 });
   const lanyard = makeEl('lanyard', { left: 0, top: 0, width: 1400, height: 900 });
   const cordPath = makeEl('lanyard-path', { left: 0, top: 0, width: 0, height: 0 });
   const hero = makeEl('hero', { left: 0, top: 0, width: 1400, height: 900 });
-  const stage = makeEl('card-stage', { left: 800, top: 300, width: 480, height: 380 });
+  const stage = makeEl('tag-stage', { left: 800, top: 300, width: 300, height: 300 });
   const byId = {
-    'id-card': card,
-    readout: readout, 'drag-hint': hint, 'name-tag': nameTag,
-    lanyard: lanyard, 'lanyard-path': cordPath, hero: hero, 'card-stage': stage
+    'drag-hint': hint, 'name-tag': nameTag,
+    lanyard: lanyard, 'lanyard-path': cordPath, hero: hero, 'tag-stage': stage
   };
   const frames = [];
 
@@ -93,84 +90,8 @@ function bootstrap(opts) {
     queued.forEach((fn) => fn(16));
   };
 
-  return { sandbox, card, readout, nameTag, lanyard, path: cordPath, hero, stage, hint, frames };
+  return { sandbox, nameTag, lanyard, path: cordPath, hero, stage, hint, frames };
 }
-
-test('a drag released short of the threshold springs back and does not unlock', () => {
-  const { sandbox, card } = bootstrap();
-  let accepted = 0;
-  sandbox.Site.initCard(() => { accepted++; });
-
-  // card is 340 wide -> threshold 153px
-  card.fire('pointerdown', { clientX: 370, clientY: 400, pointerId: 1 });
-  card.fire('pointermove', { clientX: 470, clientY: 400, pointerId: 1 });
-  assert.match(card.style.transform, /rotate\(-?[\d.]+deg\)/, 'tilts while dragging');
-  assert.strictEqual(card._classes.has('is-ready'), false, '100px is short of the threshold');
-
-  card.fire('pointerup', { clientX: 470, clientY: 400, pointerId: 1 });
-  assert.strictEqual(card.style.transform, '', 'returns to its resting transform');
-  assert.strictEqual(accepted, 0);
-});
-
-test('dragging past the threshold flags the card as ready to release', () => {
-  const { sandbox, card } = bootstrap();
-  sandbox.Site.initCard(() => {});
-  card.fire('pointerdown', { clientX: 370, clientY: 400, pointerId: 1 });
-  card.fire('pointermove', { clientX: 400, clientY: 400, pointerId: 1 });
-  assert.strictEqual(card._classes.has('is-ready'), false);
-  card.fire('pointermove', { clientX: 560, clientY: 400, pointerId: 1 });
-  assert.strictEqual(card._classes.has('is-ready'), true, '190px is past the 153px threshold');
-});
-
-test('dragging left never completes the swipe', () => {
-  const { sandbox, card } = bootstrap();
-  let accepted = 0;
-  sandbox.Site.initCard(() => { accepted++; });
-  card.fire('pointerdown', { clientX: 370, clientY: 400, pointerId: 1 });
-  card.fire('pointermove', { clientX: 100, clientY: 400, pointerId: 1 });
-  card.fire('pointerup', { clientX: 100, clientY: 400, pointerId: 1 });
-  assert.strictEqual(accepted, 0);
-  assert.strictEqual(card.style.transform, '', 'springs back');
-});
-
-test('completing the swipe runs the accept sequence exactly once', async () => {
-  const { sandbox, card, reader, led, readout } = bootstrap();
-  let accepted = 0;
-  sandbox.Site.initCard(() => { accepted++; });
-
-  card.fire('pointerdown', { clientX: 370, clientY: 400, pointerId: 1 });
-  card.fire('pointermove', { clientX: 600, clientY: 410, pointerId: 1 });
-  card.fire('pointerup', { clientX: 600, clientY: 410, pointerId: 1 });
-
-  await new Promise((r) => setTimeout(r, 2400));
-
-  assert.strictEqual(card._classes.has('is-consumed'), true, 'card is consumed');
-  assert.strictEqual(readout.textContent, 'Welcome');
-  assert.strictEqual(accepted, 1, 'unlock callback fires once');
-
-  card.fire('pointerdown', { clientX: 300, clientY: 300, pointerId: 2 });
-  card.fire('click', { preventDefault() {} });
-  assert.strictEqual(accepted, 1, 'further interaction is inert');
-});
-
-test('pressing Enter on the focused card accepts without a drag', async () => {
-  const { sandbox, readout } = bootstrap();
-  let accepted = 0;
-  const api = sandbox.Site.initCard(() => { accepted++; });
-  assert.ok(api, 'initCard returns its api when the card exists');
-
-  // a <button> fires click for both Enter and Space
-  sandbox.document.getElementById('id-card').fire('click', { preventDefault() {} });
-  await new Promise((r) => setTimeout(r, 2400));
-  assert.strictEqual(accepted, 1);
-  assert.strictEqual(readout.textContent, 'Welcome');
-});
-
-test('initCard is inert on a page with no card', () => {
-  const { sandbox } = bootstrap();
-  sandbox.document.getElementById = () => null;
-  assert.strictEqual(sandbox.Site.initCard(() => {}), null);
-});
 
 test('initLanyard is inert when the lanyard markup is absent', () => {
   const { sandbox } = bootstrap();
@@ -277,34 +198,4 @@ test('under reduced motion the badge hangs statically with no physics loop', () 
   assert.strictEqual(frames.length, 0, 'no animation loop should start');
   const d = path._attrs.d;
   assert.strictEqual((d.match(/L/g) || []).length, 1, 'a straight cord, not a simulated one');
-});
-
-test('completing the swipe drops the name tag before the page unlocks', async () => {
-  const { sandbox, card, lanyard } = bootstrap();
-  const order = [];
-  sandbox.Site.initCard(
-    () => order.push('accepted'),
-    () => order.push('granted')
-  );
-
-  card.fire('pointerdown', { clientX: 370, clientY: 400, pointerId: 1 });
-  card.fire('pointermove', { clientX: 600, clientY: 410, pointerId: 1 });
-  card.fire('pointerup', { clientX: 600, clientY: 410, pointerId: 1 });
-
-  await new Promise((r) => setTimeout(r, 2200));
-
-  assert.deepStrictEqual(order, ['granted', 'accepted'], 'the tag must drop before the page scrolls away');
-  assert.strictEqual(lanyard._classes.has('is-dropped'), false, 'initCard does not touch the lanyard directly — init() wires that');
-});
-
-test('initCard still works with only one argument, for backward compatibility', async () => {
-  const { sandbox, card } = bootstrap();
-  let accepted = 0;
-  assert.doesNotThrow(() => sandbox.Site.initCard(() => { accepted++; }));
-
-  card.fire('pointerdown', { clientX: 370, clientY: 400, pointerId: 1 });
-  card.fire('pointermove', { clientX: 600, clientY: 410, pointerId: 1 });
-  card.fire('pointerup', { clientX: 600, clientY: 410, pointerId: 1 });
-  await new Promise((r) => setTimeout(r, 2200));
-  assert.strictEqual(accepted, 1);
 });

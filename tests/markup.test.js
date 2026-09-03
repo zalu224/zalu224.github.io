@@ -59,16 +59,10 @@ test('every page loads core.js before site.js, and its data before both', () => 
   }
 });
 
-test('the home page ships gated, with a noscript escape', () => {
+test('the home page is not gated: the card that unlocked it is gone', () => {
   const html = read('index.html');
-  assert.match(html, /<body class="locked">/);
-  assert.match(html, /<noscript><style>body\.locked\{overflow:auto\}/);
-});
-
-test('only the home page is gated', () => {
-  for (const page of PAGES.filter((p) => p !== 'index.html')) {
-    assert.ok(!read(page).includes('class="locked"'), `${page} must not be gated`);
-  }
+  assert.ok(!/<body class="locked">/.test(html), 'nothing locks the page any more');
+  assert.ok(!/body\.locked/.test(html), 'the noscript unlock shim should be gone too');
 });
 
 test('every page marks its own nav link as current', () => {
@@ -138,7 +132,7 @@ test('the USC and BU facts render exactly as the resume states them', () => {
   assert.ok(work.includes('College of Arts and Sciences'));
 });
 
-test('the name and card never share a column: they are separate, oppositely-ordered flex items', () => {
+test('the name and badge never share a column: they are separate, oppositely-ordered flex items', () => {
   // The card used to be absolutely positioned with inset:0 over the whole
   // hero, sharing space with the bottom-anchored .hero-name and colliding
   // with it on realistic content heights (the eyebrow line in particular).
@@ -149,15 +143,15 @@ test('the name and card never share a column: they are separate, oppositely-orde
   const heroBlock = /\.hero\s*\{[^}]*\}/.exec(css)[0];
   assert.match(heroBlock, /display:\s*flex/);
 
-  const stageBlock = /\.card-stage\s*\{[^}]*\}/.exec(css)[0];
-  assert.doesNotMatch(stageBlock, /inset:\s*0/, 'card-stage must not span the full hero any more');
-  assert.match(stageBlock, /width:\s*\d/, 'card-stage needs its own explicit width to form a real column');
-  assert.match(stageBlock, /height:\s*\d/, 'card-stage needs its own explicit height to form a real column');
+  const stageBlock = /\.tag-stage\s*\{[^}]*\}/.exec(css)[0];
+  assert.doesNotMatch(stageBlock, /inset:\s*0/, 'tag-stage must not span the full hero any more');
+  assert.match(stageBlock, /width:\s*\d/, 'tag-stage needs its own explicit width to form a real column');
+  assert.match(stageBlock, /height:\s*\d/, 'tag-stage needs its own explicit height to form a real column');
   assert.match(stageBlock, /margin:.*auto.*auto/, 'card-stage should center in the remaining space, not hug the viewport edge');
 
   const nameOrder = parseFloat(/order:\s*(\d+)/.exec(/\.hero-name\s*\{[^}]*\}/.exec(css)[0])[1]);
   const stageOrder = parseFloat(/order:\s*(\d+)/.exec(stageBlock)[1]);
-  assert.ok(nameOrder < stageOrder, 'on the wide layout, the name column must render before the card column');
+  assert.ok(nameOrder < stageOrder, 'on the wide layout, the name column must render before the badge column');
 });
 
 
@@ -169,7 +163,7 @@ test('the location is reported as Los Angeles everywhere it appears', () => {
   assert.match(contact, /Los Angeles, CA/);
 });
 
-test('below the two-column threshold, the card stacks above the name with swapped order', () => {
+test('below the two-column threshold, the badge stacks above the name with swapped order', () => {
   const css = read('styles.css');
   const stacked = /@media \(max-width: 1180px\) \{([\s\S]*?)\n\}/.exec(css)[1];
 
@@ -177,13 +171,13 @@ test('below the two-column threshold, the card stacks above the name with swappe
   assert.ok(heroRule, '.hero must be overridden below the two-column threshold');
   assert.match(heroRule[0], /flex-direction:\s*column/, 'stacked .hero must lay its children out in a column');
 
-  const stageRule = /\.card-stage\s*\{[^}]*\}/.exec(stacked);
-  assert.ok(stageRule, '.card-stage must be overridden below the two-column threshold');
-  assert.match(stageRule[0], /width:\s*100%/, 'stacked .card-stage needs an explicit width or it collapses to zero');
+  const stageRule = /\.tag-stage\s*\{[^}]*\}/.exec(stacked);
+  assert.ok(stageRule, '.tag-stage must be overridden below the two-column threshold');
+  assert.match(stageRule[0], /width:\s*100%/, 'stacked .tag-stage needs an explicit width or it collapses to zero');
 
   const nameOrder = parseFloat(/order:\s*(\d+)/.exec(/\.hero-name\s*\{[^}]*\}/.exec(stacked)[0])[1]);
   const stageOrder = parseFloat(/order:\s*(\d+)/.exec(stageRule[0])[1]);
-  assert.ok(stageOrder < nameOrder, 'stacked: the card column must render before (above) the name');
+  assert.ok(stageOrder < nameOrder, 'stacked: the badge column must render before (above) the name');
 });
 
 test('the wide-layout-only rules do not leak into the general mobile block, and vice versa', () => {
@@ -242,74 +236,41 @@ function effectiveRule(css, selector, viewportWidth) {
   return declarations;
 }
 
-test('the card starts on the left with room to swipe right, at every width', () => {
-  // There is no reader any more: the card is swiped rightward past a distance
-  // threshold. So at every breakpoint the card must sit toward the left of its
-  // stage with at least a full threshold of open space to its right, or the
-  // gesture cannot be completed.
-  const css = read('styles.css');
-
-  const px = (v) => {
-    if (v === undefined || v === null) { return null; }
-    if (/^0$/.test(v.trim())) { return 0; }
-    const m = /(-?[\d.]+)(px|rem)/.exec(v);
-    if (!m) { return null; }
-    return m[2] === 'rem' ? parseFloat(m[1]) * 16 : parseFloat(m[1]);
-  };
-  // Mirrors Core.swipeThreshold
-  const threshold = (cardWidth) => Math.max(90, cardWidth * 0.45);
-
-  const tiers = [
-    { name: 'wide desktop', width: 1440, stage: 540 },
-    { name: 'narrow desktop', width: 1100, stage: 1100 },
-    { name: 'tablet', width: 800, stage: 800 },
-    { name: 'phone', width: 375, stage: 375 },
-    { name: 'small phone', width: 320, stage: 320 }
+test('the card, reader, scanner and lock are fully removed, not just hidden', () => {
+  // The hero is now just the hanging badge. Anything left behind from the
+  // card/reader/gate era is dead weight that can silently come back.
+  const tokens = [
+    'id-card', 'card-reader', 'reader-slit', 'reader-led', 'card-stage',
+    'scan-grid', 'scan-line', 'scan-sweep', 'readout',
+    'isWithinSnapZone', 'swipeThreshold', 'createLockState', 'initCard', 'initGate',
+    'body.locked'
   ];
-
-  for (const tier of tiers) {
-    const d = effectiveRule(css, '.id-card', tier.width);
-    const width = px(d.width);
-    let left;
-    if (d.left === '50%') {
-      const parts = (d.margin || '').trim().split(/\s+/);
-      left = tier.stage / 2 + (parts.length === 4 ? (px(parts[3]) || 0) : 0);
-    } else {
-      left = px(d.left);
-    }
-    assert.ok(left !== null, `${tier.name}: could not resolve the card's left edge`);
-
-    const room = tier.stage - (left + width);
-    assert.ok(left >= 0, `${tier.name}: card starts off the left edge at ${left}`);
-    assert.ok(room >= threshold(width),
-      `${tier.name}: only ${room.toFixed(0)}px of swipe room right of the card, ` +
-      `needs ${threshold(width).toFixed(0)}px`);
-  }
-});
-
-test('the reader is gone from the markup, styles and script', () => {
-  for (const file of ['index.html', 'styles.css', 'js/site.js']) {
+  for (const file of ['index.html', 'styles.css', 'js/site.js', 'js/core.js']) {
     const text = read(file);
-    for (const token of ['card-reader', 'reader-slit', 'reader-led', 'isWithinSnapZone']) {
+    for (const token of tokens) {
       assert.ok(!text.includes(token), `${file} still references ${token}`);
     }
   }
 });
 
-test('the badge shows the photo and no "access granted" label', () => {
+test('the badge is a portrait photo, a name and a role — nothing else', () => {
   const home = read('index.html');
   const tag = /<div class="name-tag"[^>]*>([\s\S]*?)<\/div>/.exec(home);
   assert.ok(tag, 'name tag not found');
-  assert.match(tag[1], /name-tag-photo/, 'the photo must still be on the badge');
-  assert.ok(!/access granted/i.test(tag[1]), 'the badge should not carry an "Access Granted" label');
+
+  const parts = [...tag[1].matchAll(/class="[^"]*\b(name-tag-[a-z]+)\b/g)].map((m) => m[1]);
+  assert.deepStrictEqual(parts.sort(), ['name-tag-name', 'name-tag-photo', 'name-tag-role', 'name-tag-slot', 'name-tag-strip']);
+  assert.ok(!/ID 2025/.test(tag[1]), 'the ID line belonged to the card, not the badge');
 });
 
-test('the access card header carries no school line', () => {
-  const home = read('index.html');
-  const head = /<span class="id-card-head[^>]*>([\s\S]*?)<\/span>\s*<span class="id-card-body/.exec(home);
-  assert.ok(head, 'card header not found');
-  assert.ok(!/Viterbi|USC/.test(head[1]), 'the header should read just "Access Card"');
-  assert.match(head[1], /Access Card/);
+test('the headshot is cropped portrait, not into a circle', () => {
+  const css = read('styles.css');
+  const photo = /\.name-tag-photo\s*\{[^}]*\}/.exec(css)[0];
+  const w = parseFloat(/width:\s*(\d+)px/.exec(photo)[1]);
+  const h = parseFloat(/height:\s*(\d+)px/.exec(photo)[1]);
+  assert.ok(h > w, `the photo should be taller than it is wide (${w}x${h})`);
+  assert.match(photo, /object-fit:\s*cover/);
+  assert.ok(!/border-radius:\s*50%/.test(photo), 'a circle crops the headshot; use a soft rectangle');
 });
 
 test('the hero bio line is spaced into its own lines, with no trailing "actually use"', () => {

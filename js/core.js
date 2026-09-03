@@ -5,88 +5,6 @@
     return Math.min(max, Math.max(min, value));
   }
 
-  function distance(ax, ay, bx, by) {
-    var dx = ax - bx;
-    var dy = ay - by;
-    return Math.sqrt(dx * dx + dy * dy);
-  }
-
-  // How far right the card must travel to count as swiped. Scales with the
-  // card so the gesture feels the same on a phone as on a desktop.
-  function swipeThreshold(cardWidth) {
-    return Math.max(90, cardWidth * 0.45);
-  }
-
-  function swipeProgress(dx, threshold) {
-    return clamp(dx / threshold, 0, 1);
-  }
-
-  function isSwipeComplete(dx, threshold) {
-    return dx >= threshold;
-  }
-
-  function tiltFromVelocity(velocityX, maxDeg) {
-    return clamp(velocityX * 0.4, -maxDeg, maxDeg);
-  }
-
-  function parallaxOffset(scrollY, rate, maxPx) {
-    return clamp(scrollY * rate, -maxPx, maxPx);
-  }
-
-  var UNLOCK_KEY = 'aaronlu.unlocked';
-  var UNLOCK_KEYS = [' ', 'Spacebar', 'ArrowDown', 'PageDown', 'Tab', 'Enter'];
-
-  function isUnlockKey(key) {
-    return UNLOCK_KEYS.indexOf(key) !== -1;
-  }
-
-  function readUnlockFlag(storage) {
-    try {
-      return storage.getItem(UNLOCK_KEY) === '1';
-    } catch (err) {
-      return false;
-    }
-  }
-
-  function writeUnlockFlag(storage) {
-    try {
-      storage.setItem(UNLOCK_KEY, '1');
-      return true;
-    } catch (err) {
-      return false;
-    }
-  }
-
-  function createLockState(options) {
-    var opts = options || {};
-    var storage = opts.storage || null;
-    var listeners = [];
-    var unlocked = false;
-    var reason = null;
-
-    if (opts.reducedMotion) {
-      unlocked = true;
-      reason = 'reduced-motion';
-    } else if (storage && readUnlockFlag(storage)) {
-      unlocked = true;
-      reason = 'restored';
-    }
-
-    return {
-      isUnlocked: function () { return unlocked; },
-      reason: function () { return reason; },
-      onUnlock: function (fn) { listeners.push(fn); },
-      unlock: function (why) {
-        if (unlocked) { return false; }
-        unlocked = true;
-        reason = why || 'unknown';
-        if (storage) { writeUnlockFlag(storage); }
-        for (var i = 0; i < listeners.length; i++) { listeners[i](reason); }
-        return true;
-      }
-    };
-  }
-
   var COUNT_RE = /^([^0-9-]*)(-?[0-9,]*\.?[0-9]+)(.*)$/;
 
   function parseCountable(text) {
@@ -320,17 +238,6 @@
 
   var api = {
     clamp: clamp,
-    distance: distance,
-    swipeThreshold: swipeThreshold,
-    swipeProgress: swipeProgress,
-    isSwipeComplete: isSwipeComplete,
-    tiltFromVelocity: tiltFromVelocity,
-    parallaxOffset: parallaxOffset,
-    UNLOCK_KEY: UNLOCK_KEY,
-    isUnlockKey: isUnlockKey,
-    readUnlockFlag: readUnlockFlag,
-    writeUnlockFlag: writeUnlockFlag,
-    createLockState: createLockState,
     parseCountable: parseCountable,
     formatCount: formatCount,
     easeOutCubic: easeOutCubic,

@@ -95,27 +95,13 @@
     }
   }
 
-  var MAX_TILT = 10;
-
-  function typeOut(node, text, done) {
-    var i = 0;
-    node.textContent = '';
-    var timer = setInterval(function () {
-      i += 1;
-      node.textContent = text.slice(0, i);
-      if (i >= text.length) {
-        clearInterval(timer);
-        if (done) { done(); }
-      }
-    }, Math.max(12, Math.round(500 / text.length)));
-  }
 
   function initLanyard() {
     var root = document.getElementById('lanyard');
     var tag = document.getElementById('name-tag');
     var path = document.getElementById('lanyard-path');
     var hero = document.getElementById('hero');
-    var stage = document.getElementById('card-stage');
+    var stage = document.getElementById('tag-stage');
     if (!root || !tag || !path || !hero) { return null; }
 
     var SEGMENT = 16;
@@ -243,158 +229,6 @@
     };
   }
 
-  function initCard(onAccepted, onGranted) {
-    var card = document.getElementById('id-card');
-    var readout = document.getElementById('readout');
-    if (!card) { return null; }
-
-    var dragging = false;
-    var accepted = false;
-    var originX = 0, originY = 0;
-    var dx = 0, dy = 0;
-    var lastX = 0, lastMoveTime = 0, velocityX = 0;
-
-    function threshold() {
-      return Core.swipeThreshold(card.getBoundingClientRect().width || 340);
-    }
-
-    function paint(tilt) {
-      card.style.transform = 'translate3d(' + dx + 'px,' + dy + 'px,0) rotate(' + tilt + 'deg)';
-    }
-
-    function reset() {
-      dx = 0; dy = 0;
-      card.style.transform = '';
-      card.classList.remove('is-ready');
-    }
-
-    function accept() {
-      if (accepted) { return; }
-      accepted = true;
-      dragging = false;
-      card.classList.remove('is-dragging');
-      card.classList.remove('is-ready');
-
-      // Carry the card the rest of the way out to the right and let it go.
-      var exit = Math.max(dx, threshold()) + 260;
-      card.style.transition = 'transform 420ms ease-in, opacity 420ms ease-in';
-      card.style.transform = 'translate3d(' + exit + 'px,' + dy + 'px,0) rotate(-5deg)';
-      card.classList.add('is-consumed');
-
-      setTimeout(function () {
-        if (onGranted) { onGranted(); }
-      }, 420);
-
-      setTimeout(function () {
-        if (readout) {
-          typeOut(readout, 'Welcome', function () {
-            setTimeout(function () { if (onAccepted) { onAccepted(); } }, 700);
-          });
-        } else if (onAccepted) {
-          onAccepted();
-        }
-      }, 560);
-    }
-
-    card.addEventListener('pointerdown', function (event) {
-      if (accepted) { return; }
-      dragging = true;
-      originX = event.clientX - dx;
-      originY = event.clientY - dy;
-      lastX = event.clientX;
-      lastMoveTime = Date.now();
-      velocityX = 0;
-      card.classList.add('is-dragging');
-      card.setPointerCapture(event.pointerId);
-    });
-
-    card.addEventListener('pointermove', function (event) {
-      if (!dragging || accepted) { return; }
-      var now = Date.now();
-      var elapsed = Math.max(1, now - lastMoveTime);
-      velocityX = (event.clientX - lastX) / elapsed * 16;
-      lastX = event.clientX;
-      lastMoveTime = now;
-
-      dx = event.clientX - originX;
-      dy = event.clientY - originY;
-      paint(Core.tiltFromVelocity(velocityX, MAX_TILT));
-
-      card.classList.toggle('is-ready', Core.isSwipeComplete(dx, threshold()));
-    });
-
-    function release(event) {
-      if (!dragging || accepted) { return; }
-      dragging = false;
-      card.classList.remove('is-dragging');
-      if (card.hasPointerCapture && card.hasPointerCapture(event.pointerId)) {
-        card.releasePointerCapture(event.pointerId);
-      }
-      if (Core.isSwipeComplete(dx, threshold())) { accept(); } else { reset(); }
-    }
-
-    card.addEventListener('pointerup', release);
-    card.addEventListener('pointercancel', release);
-
-    card.addEventListener('click', function (event) {
-      event.preventDefault();
-      if (!accepted) { accept(); }
-    });
-
-    return { accept: accept };
-  }
-
-  function initGate() {
-    var body = document.body;
-    if (!body.classList.contains('locked')) { return null; }
-
-    var storage = null;
-    try { storage = global.sessionStorage; } catch (err) { storage = null; }
-
-    var lock = Core.createLockState({
-      storage: storage,
-      reducedMotion: prefersReducedMotion()
-    });
-
-    function applyUnlocked(reason) {
-      body.classList.remove('locked');
-      var below = document.getElementById('background');
-      if (below) { below.removeAttribute('aria-hidden'); }
-      var gated = document.getElementById('gated');
-      if (gated) { gated.removeAttribute('aria-hidden'); }
-      if (reason !== 'restored' && reason !== 'reduced-motion' && below) {
-        below.scrollIntoView({
-          behavior: prefersReducedMotion() ? 'auto' : 'smooth',
-          block: 'start'
-        });
-      }
-    }
-
-    lock.onUnlock(applyUnlocked);
-
-    if (lock.isUnlocked()) {
-      applyUnlocked(lock.reason());
-    } else {
-      var byIntent = function (reason) {
-        return function () { lock.unlock(reason); };
-      };
-      global.addEventListener('wheel', byIntent('scroll'), { passive: true, once: true });
-      // A touch-drag on the card itself fires native touchmove events on window
-      // too. Without this check, starting the card drag would unlock instantly
-      // via the scroll-intent fallback instead of requiring the actual swipe.
-      global.addEventListener('touchmove', function (event) {
-        var target = event.target;
-        if (target && target.closest && target.closest('#id-card')) { return; }
-        lock.unlock('touch');
-      }, { passive: true });
-      global.addEventListener('keydown', function (event) {
-        if (Core.isUnlockKey(event.key)) { lock.unlock('keyboard'); }
-      });
-    }
-
-    return lock;
-  }
-
   function animateCount(node) {
     var spec = Core.parseCountable(node.textContent);
     if (!spec) { return; }
@@ -422,28 +256,6 @@
       });
     }, { threshold: 0.6 });
     for (var i = 0; i < nodes.length; i++) { observer.observe(nodes[i]); }
-  }
-
-  function initParallax() {
-    var nodes = document.querySelectorAll('[data-parallax]');
-    if (!nodes.length || prefersReducedMotion()) { return; }
-    var ticking = false;
-
-    function update() {
-      var y = global.pageYOffset || document.documentElement.scrollTop;
-      for (var i = 0; i < nodes.length; i++) {
-        var rate = parseFloat(nodes[i].getAttribute('data-parallax')) || 0.3;
-        nodes[i].style.transform = 'translate3d(0,' + Core.parallaxOffset(y, rate, 200) + 'px,0)';
-      }
-      ticking = false;
-    }
-
-    global.addEventListener('scroll', function () {
-      if (ticking) { return; }
-      ticking = true;
-      requestAnimationFrame(update);
-    }, { passive: true });
-    update();
   }
 
   function initMagnetic() {
@@ -493,16 +305,15 @@
     renderProjects();
     renderWork();
     renderHome();
-    var lock = initGate();
+
     var lanyard = initLanyard();
-    initCard(function () {
-      if (lock) { lock.unlock('swipe'); }
-    }, function () {
-      if (lanyard) { lanyard.drop(); }
-    });
+    if (lanyard) {
+      // Let the page paint, then let the badge fall in.
+      setTimeout(function () { lanyard.drop(); }, 350);
+    }
+
     initReveals();
     initCounters();
-    initParallax();
     initMagnetic();
     initPageTransitions();
   }
@@ -513,11 +324,8 @@
     renderProjects: renderProjects,
     renderWork: renderWork,
     renderHome: renderHome,
-    initCard: initCard,
     initLanyard: initLanyard,
-    initGate: initGate,
     initCounters: initCounters,
-    initParallax: initParallax,
     initMagnetic: initMagnetic,
     initPageTransitions: initPageTransitions,
     init: init
