@@ -11,14 +11,18 @@
     return Math.sqrt(dx * dx + dy * dy);
   }
 
-  function centerOf(rect) {
-    return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+  // How far right the card must travel to count as swiped. Scales with the
+  // card so the gesture feels the same on a phone as on a desktop.
+  function swipeThreshold(cardWidth) {
+    return Math.max(90, cardWidth * 0.45);
   }
 
-  function isWithinSnapZone(cardRect, slotRect, threshold) {
-    var c = centerOf(cardRect);
-    var s = centerOf(slotRect);
-    return distance(c.x, c.y, s.x, s.y) <= threshold;
+  function swipeProgress(dx, threshold) {
+    return clamp(dx / threshold, 0, 1);
+  }
+
+  function isSwipeComplete(dx, threshold) {
+    return dx >= threshold;
   }
 
   function tiltFromVelocity(velocityX, maxDeg) {
@@ -317,8 +321,9 @@
   var api = {
     clamp: clamp,
     distance: distance,
-    centerOf: centerOf,
-    isWithinSnapZone: isWithinSnapZone,
+    swipeThreshold: swipeThreshold,
+    swipeProgress: swipeProgress,
+    isSwipeComplete: isSwipeComplete,
     tiltFromVelocity: tiltFromVelocity,
     parallaxOffset: parallaxOffset,
     UNLOCK_KEY: UNLOCK_KEY,

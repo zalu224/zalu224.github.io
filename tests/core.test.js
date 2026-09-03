@@ -15,25 +15,26 @@ test('distance measures a 3-4-5 triangle', () => {
   assert.strictEqual(Core.distance(0, 0, 3, 4), 5);
 });
 
-test('centerOf returns the middle of a rect', () => {
-  assert.deepStrictEqual(
-    Core.centerOf({ left: 10, top: 20, width: 100, height: 50 }),
-    { x: 60, y: 45 }
-  );
+test('swipeThreshold scales with the card but never gets trivially short', () => {
+  assert.strictEqual(Core.swipeThreshold(340), 153);
+  assert.strictEqual(Core.swipeThreshold(280), 126);
+  assert.strictEqual(Core.swipeThreshold(200), 90, 'floored so a small card still needs a deliberate swipe');
+  assert.strictEqual(Core.swipeThreshold(0), 90);
 });
 
-test('isWithinSnapZone is true only when centers are close enough', () => {
-  const card = { left: 0, top: 0, width: 100, height: 100 };
-  const near = { left: 90, top: 0, width: 100, height: 100 };
-  const far = { left: 400, top: 0, width: 100, height: 100 };
-  assert.strictEqual(Core.isWithinSnapZone(card, near, 100), true);
-  assert.strictEqual(Core.isWithinSnapZone(card, far, 100), false);
+test('swipeProgress reports 0 to 1 across the threshold', () => {
+  assert.strictEqual(Core.swipeProgress(0, 150), 0);
+  assert.strictEqual(Core.swipeProgress(75, 150), 0.5);
+  assert.strictEqual(Core.swipeProgress(150, 150), 1);
+  assert.strictEqual(Core.swipeProgress(400, 150), 1, 'clamped past the end');
+  assert.strictEqual(Core.swipeProgress(-90, 150), 0, 'dragging left is no progress');
 });
 
-test('isWithinSnapZone is inclusive at exactly the threshold', () => {
-  const a = { left: 0, top: 0, width: 0, height: 0 };
-  const b = { left: 60, top: 0, width: 0, height: 0 };
-  assert.strictEqual(Core.isWithinSnapZone(a, b, 60), true);
+test('isSwipeComplete only fires once the card has travelled far enough right', () => {
+  assert.strictEqual(Core.isSwipeComplete(149, 150), false);
+  assert.strictEqual(Core.isSwipeComplete(150, 150), true);
+  assert.strictEqual(Core.isSwipeComplete(600, 150), true);
+  assert.strictEqual(Core.isSwipeComplete(-600, 150), false, 'a leftward drag never completes');
 });
 
 test('tiltFromVelocity scales velocity and clamps to the max', () => {

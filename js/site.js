@@ -95,7 +95,6 @@
     }
   }
 
-  var SNAP_THRESHOLD = 60;
   var MAX_TILT = 10;
 
   function typeOut(node, text, done) {
@@ -246,16 +245,18 @@
 
   function initCard(onAccepted, onGranted) {
     var card = document.getElementById('id-card');
-    var reader = document.getElementById('card-reader');
-    var led = document.getElementById('reader-led');
     var readout = document.getElementById('readout');
-    if (!card || !reader) { return null; }
+    if (!card) { return null; }
 
     var dragging = false;
     var accepted = false;
     var originX = 0, originY = 0;
     var dx = 0, dy = 0;
     var lastX = 0, lastMoveTime = 0, velocityX = 0;
+
+    function threshold() {
+      return Core.swipeThreshold(card.getBoundingClientRect().width || 340);
+    }
 
     function paint(tilt) {
       card.style.transform = 'translate3d(' + dx + 'px,' + dy + 'px,0) rotate(' + tilt + 'deg)';
@@ -264,7 +265,7 @@
     function reset() {
       dx = 0; dy = 0;
       card.style.transform = '';
-      reader.classList.remove('is-near');
+      card.classList.remove('is-ready');
     }
 
     function accept() {
@@ -272,36 +273,27 @@
       accepted = true;
       dragging = false;
       card.classList.remove('is-dragging');
-      reader.classList.remove('is-near');
+      card.classList.remove('is-ready');
 
-      var cardRect = card.getBoundingClientRect();
-      var slotRect = reader.getBoundingClientRect();
-      var toSlotX = dx + (slotRect.left + slotRect.width / 2) - (cardRect.left + cardRect.width / 2);
-      var toSlotY = dy + (slotRect.top + 20) - (cardRect.top + cardRect.height / 2);
-
-      card.style.transition = 'transform 180ms ease-out';
-      card.style.transform = 'translate3d(' + toSlotX + 'px,' + toSlotY + 'px,0) rotate(0deg)';
+      // Carry the card the rest of the way out to the right and let it go.
+      var exit = Math.max(dx, threshold()) + 260;
+      card.style.transition = 'transform 420ms ease-in, opacity 420ms ease-in';
+      card.style.transform = 'translate3d(' + exit + 'px,' + dy + 'px,0) rotate(-5deg)';
+      card.classList.add('is-consumed');
 
       setTimeout(function () {
-        card.style.transition = 'transform 420ms ease-in, opacity 420ms ease-in';
-        card.style.transform = 'translate3d(' + toSlotX + 'px,' + (toSlotY + 160) + 'px,0) scale(.94)';
-        card.classList.add('is-consumed');
-      }, 180);
-
-      setTimeout(function () {
-        if (led) { led.classList.add('is-granted'); }
         if (onGranted) { onGranted(); }
-      }, 600);
+      }, 420);
 
       setTimeout(function () {
         if (readout) {
-          typeOut(readout, 'Access granted · Welcome', function () {
-            setTimeout(function () { if (onAccepted) { onAccepted(); } }, 500);
+          typeOut(readout, 'Welcome', function () {
+            setTimeout(function () { if (onAccepted) { onAccepted(); } }, 700);
           });
         } else if (onAccepted) {
           onAccepted();
         }
-      }, 760);
+      }, 560);
     }
 
     card.addEventListener('pointerdown', function (event) {
@@ -328,10 +320,7 @@
       dy = event.clientY - originY;
       paint(Core.tiltFromVelocity(velocityX, MAX_TILT));
 
-      var near = Core.isWithinSnapZone(
-        card.getBoundingClientRect(), reader.getBoundingClientRect(), SNAP_THRESHOLD
-      );
-      reader.classList.toggle('is-near', near);
+      card.classList.toggle('is-ready', Core.isSwipeComplete(dx, threshold()));
     });
 
     function release(event) {
@@ -341,10 +330,7 @@
       if (card.hasPointerCapture && card.hasPointerCapture(event.pointerId)) {
         card.releasePointerCapture(event.pointerId);
       }
-      var near = Core.isWithinSnapZone(
-        card.getBoundingClientRect(), reader.getBoundingClientRect(), SNAP_THRESHOLD
-      );
-      if (near) { accept(); } else { reset(); }
+      if (Core.isSwipeComplete(dx, threshold())) { accept(); } else { reset(); }
     }
 
     card.addEventListener('pointerup', release);

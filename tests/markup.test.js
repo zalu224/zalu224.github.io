@@ -242,10 +242,11 @@ function effectiveRule(css, selector, viewportWidth) {
   return declarations;
 }
 
-test('the swipe runs left-to-right at every width: reader always right of the card', () => {
-  // The whole interaction is "slide the card into the reader". If the reader
-  // ends up above/below the card at some breakpoint, the gesture silently
-  // becomes a vertical drag instead. This pins the arrangement everywhere.
+test('the card starts on the left with room to swipe right, at every width', () => {
+  // There is no reader any more: the card is swiped rightward past a distance
+  // threshold. So at every breakpoint the card must sit toward the left of its
+  // stage with at least a full threshold of open space to its right, or the
+  // gesture cannot be completed.
   const css = read('styles.css');
 
   const px = (v) => {
@@ -255,52 +256,52 @@ test('the swipe runs left-to-right at every width: reader always right of the ca
     if (!m) { return null; }
     return m[2] === 'rem' ? parseFloat(m[1]) * 16 : parseFloat(m[1]);
   };
-
-  const span = (d, stageWidth, label) => {
-    const width = px(d.width);
-    let marginLeft = 0;
-    if (d.margin) {
-      const parts = d.margin.trim().split(/\s+/);
-      marginLeft = parts.length === 4 ? (px(parts[3]) || 0) : 0;
-    }
-    if (d['margin-left'] !== undefined) { marginLeft = px(d['margin-left']) || 0; }
-
-    let x;
-    if (d.left === '50%') { x = stageWidth / 2 + marginLeft; }
-    else if (px(d.left) !== null && d.left !== 'auto') { x = px(d.left) + marginLeft; }
-    else if (px(d.right) !== null && d.right !== 'auto') { x = stageWidth - width - px(d.right); }
-    else { throw new Error(label + ': cannot resolve horizontal position from ' + JSON.stringify(d)); }
-    return { left: x, right: x + width, width };
-  };
+  // Mirrors Core.swipeThreshold
+  const threshold = (cardWidth) => Math.max(90, cardWidth * 0.45);
 
   const tiers = [
-    { name: 'wide desktop', width: 1440, stage: 480 },
-    { name: 'narrow desktop', width: 1100, stage: 900 },
-    { name: 'tablet', width: 800, stage: 760 },
+    { name: 'wide desktop', width: 1440, stage: 540 },
+    { name: 'narrow desktop', width: 1100, stage: 1100 },
+    { name: 'tablet', width: 800, stage: 800 },
     { name: 'phone', width: 375, stage: 375 },
     { name: 'small phone', width: 320, stage: 320 }
   ];
 
   for (const tier of tiers) {
-    const c = span(effectiveRule(css, '.id-card', tier.width), tier.stage, tier.name + ' card');
-    const r = span(effectiveRule(css, '.card-reader', tier.width), tier.stage, tier.name + ' reader');
+    const d = effectiveRule(css, '.id-card', tier.width);
+    const width = px(d.width);
+    let left;
+    if (d.left === '50%') {
+      const parts = (d.margin || '').trim().split(/\s+/);
+      left = tier.stage / 2 + (parts.length === 4 ? (px(parts[3]) || 0) : 0);
+    } else {
+      left = px(d.left);
+    }
+    assert.ok(left !== null, `${tier.name}: could not resolve the card's left edge`);
 
-    assert.ok(r.left > c.left, `${tier.name}: reader must sit right of the card`);
-    assert.ok(r.left >= c.right, `${tier.name}: reader (starts ${r.left}) overlaps the card (ends ${c.right})`);
-    assert.ok(c.left >= 0 && r.right <= tier.stage,
-      `${tier.name}: pair must fit the stage (card starts ${c.left}, reader ends ${r.right}, stage ${tier.stage})`);
+    const room = tier.stage - (left + width);
+    assert.ok(left >= 0, `${tier.name}: card starts off the left edge at ${left}`);
+    assert.ok(room >= threshold(width),
+      `${tier.name}: only ${room.toFixed(0)}px of swipe room right of the card, ` +
+      `needs ${threshold(width).toFixed(0)}px`);
   }
 });
 
-test('the phone tier fits the card and reader inside a 320px viewport', () => {
-  const css = read('styles.css');
-  const phone = css.slice(css.lastIndexOf('@media (max-width: 768px)'));
-  const w = (sel) => {
-    const block = new RegExp('\\' + sel + '\\s*\\{[^}]*\\}').exec(phone)[0];
-    return parseFloat(/width:\s*(\d+)px/.exec(block)[1]);
-  };
-  const pair = w('.id-card') + w('.card-reader');
-  assert.ok(pair + 20 <= 320, `card+reader+gap is ${pair + 20}px, too wide for a 320px screen`);
+test('the reader is gone from the markup, styles and script', () => {
+  for (const file of ['index.html', 'styles.css', 'js/site.js']) {
+    const text = read(file);
+    for (const token of ['card-reader', 'reader-slit', 'reader-led', 'isWithinSnapZone']) {
+      assert.ok(!text.includes(token), `${file} still references ${token}`);
+    }
+  }
+});
+
+test('the badge shows the photo and no "access granted" label', () => {
+  const home = read('index.html');
+  const tag = /<div class="name-tag"[^>]*>([\s\S]*?)<\/div>/.exec(home);
+  assert.ok(tag, 'name tag not found');
+  assert.match(tag[1], /name-tag-photo/, 'the photo must still be on the badge');
+  assert.ok(!/access granted/i.test(tag[1]), 'the badge should not carry an "Access Granted" label');
 });
 
 test('the access card header carries no school line', () => {

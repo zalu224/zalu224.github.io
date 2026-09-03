@@ -51,8 +51,6 @@ function endOfPath(path) {
 function bootstrap(opts) {
   const options = opts || {};
   const card = makeEl('id-card', { left: 200, top: 300, width: 340, height: 214 });
-  const reader = makeEl('card-reader', { left: 1000, top: 280, width: 96, height: 260 });
-  const led = makeEl('reader-led', { left: 0, top: 0, width: 8, height: 8 });
   const readout = makeEl('readout', { left: 0, top: 0, width: 0, height: 0 });
   const hint = makeEl('drag-hint', { left: 0, top: 0, width: 0, height: 0 });
   const nameTag = makeEl('name-tag', { left: 0, top: 0, width: 156, height: 200 });
@@ -61,7 +59,7 @@ function bootstrap(opts) {
   const hero = makeEl('hero', { left: 0, top: 0, width: 1400, height: 900 });
   const stage = makeEl('card-stage', { left: 800, top: 300, width: 480, height: 380 });
   const byId = {
-    'id-card': card, 'card-reader': reader, 'reader-led': led,
+    'id-card': card,
     readout: readout, 'drag-hint': hint, 'name-tag': nameTag,
     lanyard: lanyard, 'lanyard-path': cordPath, hero: hero, 'card-stage': stage
   };
@@ -95,30 +93,44 @@ function bootstrap(opts) {
     queued.forEach((fn) => fn(16));
   };
 
-  return { sandbox, card, reader, led, readout, nameTag, lanyard, path: cordPath, hero, stage, hint, frames };
+  return { sandbox, card, readout, nameTag, lanyard, path: cordPath, hero, stage, hint, frames };
 }
 
-test('a drag released away from the reader springs back and does not unlock', () => {
-  const { sandbox, card, reader } = bootstrap();
+test('a drag released short of the threshold springs back and does not unlock', () => {
+  const { sandbox, card } = bootstrap();
   let accepted = 0;
   sandbox.Site.initCard(() => { accepted++; });
 
+  // card is 340 wide -> threshold 153px
   card.fire('pointerdown', { clientX: 370, clientY: 400, pointerId: 1 });
-  card.fire('pointermove', { clientX: 500, clientY: 400, pointerId: 1 });
+  card.fire('pointermove', { clientX: 470, clientY: 400, pointerId: 1 });
   assert.match(card.style.transform, /rotate\(-?[\d.]+deg\)/, 'tilts while dragging');
-  assert.strictEqual(reader._classes.has('is-near'), false);
+  assert.strictEqual(card._classes.has('is-ready'), false, '100px is short of the threshold');
 
-  card.fire('pointerup', { clientX: 500, clientY: 400, pointerId: 1 });
+  card.fire('pointerup', { clientX: 470, clientY: 400, pointerId: 1 });
   assert.strictEqual(card.style.transform, '', 'returns to its resting transform');
   assert.strictEqual(accepted, 0);
 });
 
-test('dragging onto the reader flags it as near', () => {
-  const { sandbox, card, reader } = bootstrap();
+test('dragging past the threshold flags the card as ready to release', () => {
+  const { sandbox, card } = bootstrap();
   sandbox.Site.initCard(() => {});
   card.fire('pointerdown', { clientX: 370, clientY: 400, pointerId: 1 });
-  card.fire('pointermove', { clientX: 1048, clientY: 410, pointerId: 1 });
-  assert.strictEqual(reader._classes.has('is-near'), true);
+  card.fire('pointermove', { clientX: 400, clientY: 400, pointerId: 1 });
+  assert.strictEqual(card._classes.has('is-ready'), false);
+  card.fire('pointermove', { clientX: 560, clientY: 400, pointerId: 1 });
+  assert.strictEqual(card._classes.has('is-ready'), true, '190px is past the 153px threshold');
+});
+
+test('dragging left never completes the swipe', () => {
+  const { sandbox, card } = bootstrap();
+  let accepted = 0;
+  sandbox.Site.initCard(() => { accepted++; });
+  card.fire('pointerdown', { clientX: 370, clientY: 400, pointerId: 1 });
+  card.fire('pointermove', { clientX: 100, clientY: 400, pointerId: 1 });
+  card.fire('pointerup', { clientX: 100, clientY: 400, pointerId: 1 });
+  assert.strictEqual(accepted, 0);
+  assert.strictEqual(card.style.transform, '', 'springs back');
 });
 
 test('completing the swipe runs the accept sequence exactly once', async () => {
@@ -127,15 +139,13 @@ test('completing the swipe runs the accept sequence exactly once', async () => {
   sandbox.Site.initCard(() => { accepted++; });
 
   card.fire('pointerdown', { clientX: 370, clientY: 400, pointerId: 1 });
-  card.fire('pointermove', { clientX: 1048, clientY: 410, pointerId: 1 });
-  card.fire('pointerup', { clientX: 1048, clientY: 410, pointerId: 1 });
-  assert.strictEqual(reader._classes.has('is-near'), false, 'clears the near state');
+  card.fire('pointermove', { clientX: 600, clientY: 410, pointerId: 1 });
+  card.fire('pointerup', { clientX: 600, clientY: 410, pointerId: 1 });
 
   await new Promise((r) => setTimeout(r, 2400));
 
   assert.strictEqual(card._classes.has('is-consumed'), true, 'card is consumed');
-  assert.strictEqual(led._classes.has('is-granted'), true, 'LED turns green');
-  assert.strictEqual(readout.textContent, 'Access granted · Welcome');
+  assert.strictEqual(readout.textContent, 'Welcome');
   assert.strictEqual(accepted, 1, 'unlock callback fires once');
 
   card.fire('pointerdown', { clientX: 300, clientY: 300, pointerId: 2 });
@@ -153,7 +163,7 @@ test('pressing Enter on the focused card accepts without a drag', async () => {
   sandbox.document.getElementById('id-card').fire('click', { preventDefault() {} });
   await new Promise((r) => setTimeout(r, 2400));
   assert.strictEqual(accepted, 1);
-  assert.strictEqual(readout.textContent, 'Access granted · Welcome');
+  assert.strictEqual(readout.textContent, 'Welcome');
 });
 
 test('initCard is inert on a page with no card', () => {
@@ -278,8 +288,8 @@ test('completing the swipe drops the name tag before the page unlocks', async ()
   );
 
   card.fire('pointerdown', { clientX: 370, clientY: 400, pointerId: 1 });
-  card.fire('pointermove', { clientX: 1048, clientY: 410, pointerId: 1 });
-  card.fire('pointerup', { clientX: 1048, clientY: 410, pointerId: 1 });
+  card.fire('pointermove', { clientX: 600, clientY: 410, pointerId: 1 });
+  card.fire('pointerup', { clientX: 600, clientY: 410, pointerId: 1 });
 
   await new Promise((r) => setTimeout(r, 2200));
 
@@ -293,8 +303,8 @@ test('initCard still works with only one argument, for backward compatibility', 
   assert.doesNotThrow(() => sandbox.Site.initCard(() => { accepted++; }));
 
   card.fire('pointerdown', { clientX: 370, clientY: 400, pointerId: 1 });
-  card.fire('pointermove', { clientX: 1048, clientY: 410, pointerId: 1 });
-  card.fire('pointerup', { clientX: 1048, clientY: 410, pointerId: 1 });
+  card.fire('pointermove', { clientX: 600, clientY: 410, pointerId: 1 });
+  card.fire('pointerup', { clientX: 600, clientY: 410, pointerId: 1 });
   await new Promise((r) => setTimeout(r, 2200));
   assert.strictEqual(accepted, 1);
 });

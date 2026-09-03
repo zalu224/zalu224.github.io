@@ -28,7 +28,7 @@
 
     <div class="card-stage" id="card-stage">
       <button type="button" class="id-card" id="id-card"
-              aria-label="Access card. Drag it to the reader, or press Enter, to enter the site.">
+              aria-label="Access card. Drag it to the right, or press Enter, to enter the site.">
         <span class="id-card-head mono"><span>Access Card</span></span>
         <span class="id-card-body">
           <img class="id-photo" src="img/image.png" alt="" width="72" height="88">
@@ -42,12 +42,7 @@
         <span class="id-card-foot"><span class="barcode"></span><span class="id-num mono">ID 2025&middot;0506</span></span>
       </button>
 
-      <div class="card-reader" id="card-reader" aria-hidden="true">
-        <div class="reader-slit"></div>
-        <div class="reader-led" id="reader-led"></div>
-      </div>
-
-      <p class="drag-hint eyebrow" id="drag-hint">Drag the card</p>
+      <p class="drag-hint eyebrow" id="drag-hint">Drag the card &rarr;</p>
       <p class="readout mono" id="readout" role="status" aria-live="polite"></p>
     </div>
 
@@ -56,7 +51,7 @@
       <svg class="lanyard-cord" preserveAspectRatio="none"><path id="lanyard-path" /></svg>
       <div class="name-tag" id="name-tag">
         <span class="name-tag-clip"></span>
-        <span class="name-tag-head mono">Access Granted</span>
+        <span class="name-tag-strip"></span>
         <img class="name-tag-photo" src="img/image.png" alt="" width="64" height="64">
         <span class="name-tag-name serif">Aaron Lu</span>
         <span class="name-tag-role mono">Technical Product Manager</span>
