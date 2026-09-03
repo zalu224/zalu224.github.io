@@ -194,33 +194,121 @@ test('the wide-layout-only rules do not leak into the general mobile block, and 
   assert.ok(!/\.coursework-grid/.test(stacked), 'general component rules belong in the 768px block, not the 1180px one');
 });
 
-test('the stacked mobile card fits without overlapping the fixed nav or itself', () => {
-  // Fixed-pixel geometry, modeled and verified before implementation:
-  // nav bottom edge ~62px, card top 80px (18px clear), card bottom 256px,
-  // reader top 288px (32px gap), reader bottom 384px, stage 424px tall
-  // (40px left for the hint/readout text below the reader).
+// Resolve a selector's effective declarations at a given viewport width by
+// cascading every matching block in source order, the way a browser would.
+// The phone tier only overrides some properties and inherits the rest.
+function effectiveRule(css, selector, viewportWidth) {
+  const chunks = [];
+  let cursor = 0;
+  const mediaRe = /@media\s*\(([a-z-]+):\s*(\d+)px\)\s*\{/g;
+  let m;
+  while ((m = mediaRe.exec(css)) !== null) {
+    chunks.push({ query: null, text: css.slice(cursor, m.index) });
+    // walk braces to find this block's end
+    let depth = 1;
+    let i = mediaRe.lastIndex;
+    while (depth > 0 && i < css.length) {
+      if (css[i] === '{') { depth++; }
+      if (css[i] === '}') { depth--; }
+      i++;
+    }
+    chunks.push({ query: { prop: m[1], value: parseInt(m[2], 10) }, text: css.slice(mediaRe.lastIndex, i - 1) });
+    cursor = i;
+    mediaRe.lastIndex = i;
+  }
+  chunks.push({ query: null, text: css.slice(cursor) });
+
+  const applies = (q) => {
+    if (!q) { return true; }
+    if (q.prop === 'max-width') { return viewportWidth <= q.value; }
+    if (q.prop === 'min-width') { return viewportWidth >= q.value; }
+    return false;
+  };
+
+  const declarations = {};
+  const ruleRe = new RegExp('\\' + selector + '\\s*\\{([^}]*)\\}', 'g');
+  for (const chunk of chunks) {
+    if (!applies(chunk.query)) { continue; }
+    let r;
+    const re = new RegExp(ruleRe.source, 'g');
+    while ((r = re.exec(chunk.text)) !== null) {
+      for (const part of r[1].split(';')) {
+        const idx = part.indexOf(':');
+        if (idx === -1) { continue; }
+        declarations[part.slice(0, idx).trim()] = part.slice(idx + 1).trim();
+      }
+    }
+  }
+  return declarations;
+}
+
+test('the swipe runs left-to-right at every width: reader always right of the card', () => {
+  // The whole interaction is "slide the card into the reader". If the reader
+  // ends up above/below the card at some breakpoint, the gesture silently
+  // becomes a vertical drag instead. This pins the arrangement everywhere.
   const css = read('styles.css');
-  const stacked = /@media \(max-width: 1180px\) \{([\s\S]*?)\n\}/.exec(css)[1];
-  const px = (block, prop) => {
-    const m = new RegExp(prop + ':\\s*(-?[\\d.]+)(px|rem)').exec(block);
+
+  const px = (v) => {
+    if (v === undefined || v === null) { return null; }
+    if (/^0$/.test(v.trim())) { return 0; }
+    const m = /(-?[\d.]+)(px|rem)/.exec(v);
     if (!m) { return null; }
     return m[2] === 'rem' ? parseFloat(m[1]) * 16 : parseFloat(m[1]);
   };
 
-  const stage = /\.card-stage\s*\{[^}]*\}/.exec(stacked)[0];
-  const card = /\.id-card\s*\{[^}]*\}/.exec(stacked)[0];
-  const reader = /\.card-reader\s*\{[^}]*\}/.exec(stacked)[0];
+  const span = (d, stageWidth, label) => {
+    const width = px(d.width);
+    let marginLeft = 0;
+    if (d.margin) {
+      const parts = d.margin.trim().split(/\s+/);
+      marginLeft = parts.length === 4 ? (px(parts[3]) || 0) : 0;
+    }
+    if (d['margin-left'] !== undefined) { marginLeft = px(d['margin-left']) || 0; }
 
-  const stageHeight = px(stage, 'height');
-  const cardTop = px(card, 'top');
-  const cardHeight = px(card, 'height');
-  const readerTop = px(reader, 'top');
-  const readerHeight = px(reader, 'height');
+    let x;
+    if (d.left === '50%') { x = stageWidth / 2 + marginLeft; }
+    else if (px(d.left) !== null && d.left !== 'auto') { x = px(d.left) + marginLeft; }
+    else if (px(d.right) !== null && d.right !== 'auto') { x = stageWidth - width - px(d.right); }
+    else { throw new Error(label + ': cannot resolve horizontal position from ' + JSON.stringify(d)); }
+    return { left: x, right: x + width, width };
+  };
 
-  const NAV_BOTTOM_EDGE = 62; // approx: 1rem top offset + pill height
-  assert.ok(cardTop > NAV_BOTTOM_EDGE, `card top (${cardTop}px) must clear the fixed nav (~${NAV_BOTTOM_EDGE}px)`);
-  assert.ok(readerTop >= cardTop + cardHeight, `reader (top ${readerTop}px) must not overlap the card (bottom ${cardTop + cardHeight}px)`);
-  assert.ok(stageHeight >= readerTop + readerHeight, `card-stage (${stageHeight}px) must be tall enough to contain the reader (bottom ${readerTop + readerHeight}px)`);
+  const tiers = [
+    { name: 'wide desktop', width: 1440, stage: 480 },
+    { name: 'narrow desktop', width: 1100, stage: 900 },
+    { name: 'tablet', width: 800, stage: 760 },
+    { name: 'phone', width: 375, stage: 375 },
+    { name: 'small phone', width: 320, stage: 320 }
+  ];
+
+  for (const tier of tiers) {
+    const c = span(effectiveRule(css, '.id-card', tier.width), tier.stage, tier.name + ' card');
+    const r = span(effectiveRule(css, '.card-reader', tier.width), tier.stage, tier.name + ' reader');
+
+    assert.ok(r.left > c.left, `${tier.name}: reader must sit right of the card`);
+    assert.ok(r.left >= c.right, `${tier.name}: reader (starts ${r.left}) overlaps the card (ends ${c.right})`);
+    assert.ok(c.left >= 0 && r.right <= tier.stage,
+      `${tier.name}: pair must fit the stage (card starts ${c.left}, reader ends ${r.right}, stage ${tier.stage})`);
+  }
+});
+
+test('the phone tier fits the card and reader inside a 320px viewport', () => {
+  const css = read('styles.css');
+  const phone = css.slice(css.lastIndexOf('@media (max-width: 768px)'));
+  const w = (sel) => {
+    const block = new RegExp('\\' + sel + '\\s*\\{[^}]*\\}').exec(phone)[0];
+    return parseFloat(/width:\s*(\d+)px/.exec(block)[1]);
+  };
+  const pair = w('.id-card') + w('.card-reader');
+  assert.ok(pair + 20 <= 320, `card+reader+gap is ${pair + 20}px, too wide for a 320px screen`);
+});
+
+test('the access card header carries no school line', () => {
+  const home = read('index.html');
+  const head = /<span class="id-card-head[^>]*>([\s\S]*?)<\/span>\s*<span class="id-card-body/.exec(home);
+  assert.ok(head, 'card header not found');
+  assert.ok(!/Viterbi|USC/.test(head[1]), 'the header should read just "Access Card"');
+  assert.match(head[1], /Access Card/);
 });
 
 test('the hero bio line is spaced into its own lines, with no trailing "actually use"', () => {

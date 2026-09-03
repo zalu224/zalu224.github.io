@@ -700,12 +700,32 @@ body:not(.locked) .scroll-cue { opacity: 0; pointer-events: none; }
 @media (max-width: 1180px) {
   .hero { align-items: flex-start; flex-direction: column; justify-content: flex-start; gap: 0; }
   .hero-name { order: 2; padding: 1rem 1.5rem 2rem; }
-  .card-stage { position: relative; width: 100%; height: 424px; margin: 0; order: 1; }
-  .id-card { left: 50%; top: 5rem; width: 280px; height: 176px; margin: 0 0 0 -140px; }
-  .card-reader { top: 18rem; bottom: auto; left: 50%; right: auto; width: 260px; height: 96px; margin: 0 0 0 -130px; }
-  .reader-slit { top: 12px; left: 14px; right: 14px; }
-  .reader-led { bottom: 12px; }
-  .drag-hint, .readout { left: 50%; right: auto; top: auto; bottom: 0.5rem; margin: 0 0 0 -130px; text-align: center; }
+  .card-stage { position: relative; width: 100%; height: 300px; margin: 0; order: 1; }
+
+  /* Card left, reader right — the swipe stays left-to-right at every width.
+     The pair (280 + 40 gap + 76 = 396) is centred on the stage. */
+  .id-card { left: 50%; right: auto; top: 50%; width: 280px; height: 176px; margin: -88px 0 0 -198px; }
+  .card-reader { left: 50%; right: auto; top: 50%; bottom: auto; width: 76px; height: 210px; margin: -105px 0 0 122px; }
+  .drag-hint, .readout { left: 0; right: 0; top: auto; bottom: 0.5rem; margin: 0; text-align: center; }
+}
+
+/* Phones: same left-to-right arrangement, scaled to fit a 320px viewport.
+   Pair is 210 + 20 gap + 56 = 286 wide. */
+@media (max-width: 768px) {
+  .card-stage { height: 240px; }
+  .id-card { width: 210px; height: 132px; margin: -66px 0 0 -143px; }
+  .card-reader { width: 56px; height: 160px; margin: -80px 0 0 87px; }
+  .id-card-head { padding: 0.4rem 0.6rem; font-size: 8px; letter-spacing: 0.14em; }
+  .id-card-body { gap: 0.5rem; padding: 0.5rem 0.6rem; }
+  .id-photo { width: 44px; height: 54px; }
+  .id-name { font-size: 9px; letter-spacing: 0.04em; }
+  .id-role { font-size: 7px; letter-spacing: 0.08em; }
+  .id-line { display: none; }
+  .id-card-foot { padding: 0.3rem 0.6rem 0.4rem; }
+  .barcode { height: 12px; }
+  .id-num { font-size: 7px; }
+  .reader-slit { top: 10px; left: 10px; right: 10px; height: 6px; }
+  .reader-led { bottom: 10px; }
 }
 
 /* ---------- reduced motion ---------- */
