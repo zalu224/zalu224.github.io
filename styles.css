@@ -363,9 +363,10 @@ a.contact-row:hover .contact-arrow { transform: translateX(4px); }
   position: relative;
   z-index: 5;
   flex: 0 0 auto;
+  align-self: center;
   width: 300px;
   height: 300px;
-  margin: 0 auto 4rem auto;
+  margin: 0 auto 0 auto;
   order: 2;
   pointer-events: none;
 }
@@ -390,25 +391,30 @@ a.contact-row:hover .contact-arrow { transform: translateX(4px); }
 .lanyard-cord path {
   fill: none;
   stroke: var(--accent);
-  stroke-width: 5;
+  stroke-width: 4;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
 .drag-hint { position: absolute; right: 2rem; bottom: 2.5rem; z-index: 10; text-align: right; margin: 0; }
 
 /* ---------- lanyard badge ---------- */
+/* A credential, not a card: paper hanger, full-bleed portrait, ink role band.
+   The accent shows up only as line work, the way it does everywhere else. */
 .name-tag {
   position: absolute;
   left: 0;
   top: 0;
-  width: 224px;
-  margin-left: -112px;
+  width: 232px;
+  margin-left: -116px;
   transform-origin: 50% 0;
-  padding: 0 0 1.4rem;
+  padding: 0;
   background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  box-shadow: 0 22px 48px rgba(20, 20, 25, 0.16), 0 2px 6px rgba(20, 20, 25, 0.06);
+  border: 1px solid rgba(20, 20, 25, 0.12);
+  border-radius: 14px;
+  box-shadow:
+    0 1px 1px rgba(20, 20, 25, 0.05),
+    0 10px 18px -8px rgba(20, 20, 25, 0.18),
+    0 34px 48px -26px rgba(31, 63, 212, 0.28);
   text-align: center;
   overflow: hidden;
   cursor: grab;
@@ -418,49 +424,69 @@ a.contact-row:hover .contact-arrow { transform: translateX(4px); }
 }
 .name-tag.is-dragging { cursor: grabbing; }
 
-/* Accent header with a punched slot the cord passes through. */
+/* The hanger: a recessed paper field with a punched slot. Its ::before is the
+   stub of cord between the card's top edge and the hole, so the lanyard reads
+   as one continuous line into the badge. */
 .name-tag-strip {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 42px;
-  margin-bottom: 1.4rem;
+  height: 38px;
+  margin-bottom: 0;
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
+}
+.name-tag-strip::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 4px;
+  height: 15px;
+  margin-left: -2px;
   background: var(--accent);
 }
 .name-tag-slot {
+  position: relative;
   display: block;
-  width: 56px;
-  height: 8px;
-  border-radius: 4px;
-  background: rgba(10, 10, 20, 0.32);
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.45);
+  width: 62px;
+  height: 9px;
+  border-radius: 5px;
+  background: var(--paper);
+  box-shadow:
+    inset 0 1.5px 2.5px rgba(20, 20, 25, 0.5),
+    0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
-/* Portrait crop, so the whole headshot reads top to bottom rather than
-   being cut off by a circle. */
+/* Full-bleed portrait: the badge's one loud element. */
 .name-tag-photo {
-  width: 116px;
-  height: 142px;
+  width: 232px;
+  height: 250px;
   object-fit: cover;
-  object-position: center;
-  border-radius: 10px;
-  margin: 0 auto 1.1rem;
+  object-position: center 20%;
+  border-radius: 0;
+  border-bottom: 2px solid var(--accent);
+  margin: 0 0 0.95rem;
   background: var(--paper);
 }
 .name-tag-name {
   display: block;
-  font-size: 1.6rem;
+  font-size: 1.75rem;
   line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin: 0 0 1rem;
 }
 .name-tag-role {
   display: block;
-  margin: 0.5rem 1rem 0;
-  padding-top: 0.7rem;
-  border-top: 1px solid var(--line);
-  font-size: 9px;
+  margin: 0;
+  padding: 0.72rem 0.5rem;
+  background: var(--ink);
+  font-size: 8.5px;
   line-height: 1.7;
-  color: var(--faint);
-  letter-spacing: 0.16em;
+  color: rgba(246, 245, 242, 0.88);
+  letter-spacing: 0.2em;
   text-transform: uppercase;
 }
 
@@ -530,17 +556,18 @@ a.contact-row:hover .contact-arrow { transform: translateX(4px); }
 @media (max-width: 1180px) {
   .hero { align-items: flex-start; flex-direction: column; justify-content: flex-start; gap: 0; }
   .hero-name { order: 2; padding: 1rem 1.5rem 2rem; }
-  .tag-stage { width: 100%; height: 250px; margin: 0; order: 1; }
+  .tag-stage { align-self: auto; width: 100%; height: 545px; margin: 0; order: 1; }
   .drag-hint { left: 0; right: 0; bottom: auto; top: 5.5rem; text-align: center; }
 }
 
 @media (max-width: 768px) {
-  .tag-stage { height: 220px; }
-  .name-tag { width: 176px; margin-left: -88px; padding-bottom: 1.1rem; }
-  .name-tag-strip { height: 36px; }
-  .name-tag-photo { width: 92px; height: 112px; }
-  .name-tag-name { font-size: 1.25rem; }
-  .name-tag-role { font-size: 8px; }
+  .tag-stage { height: 465px; }
+  .name-tag { width: 188px; margin-left: -94px; }
+  .name-tag-strip { height: 32px; }
+  .name-tag-strip::before { height: 12px; }
+  .name-tag-photo { width: 188px; height: 204px; margin-bottom: 0.75rem; }
+  .name-tag-name { font-size: 1.4rem; margin-bottom: 0.8rem; }
+  .name-tag-role { font-size: 7.5px; padding: 0.6rem 0.4rem; letter-spacing: 0.16em; }
 }
 
 /* ---------- reduced motion ---------- */
