@@ -37,23 +37,6 @@
       caseStudy: null
     },
     {
-      id: 'tsp-3d-model',
-      kind: 'project',
-      featured: false,
-      title: 'Traveling Salesman Problem 3D Model',
-      tagline: null,
-      url: 'https://github.com/zalu224/tsp-3d-model',
-      period: '2026',
-      role: 'Algorithms & visualization',
-      stack: ['Python', 'JavaScript', 'Three.js'],
-      bullets: [
-        'Built a nearest-neighbor greedy search and a 2-opt hill-climbing solver for the traveling salesman problem over 3D points.',
-        'Animated every search step in an interactive Three.js viewer served by a dependency-free Python backend, with play, step, reset and speed controls and a timeline that doubles as the tour-length curve.',
-        'Hill climbing shortens the greedy tour by 4–12% across eight point sets of 50 to 500 points.'
-      ],
-      caseStudy: null
-    },
-    {
       id: 'nyc-air-quality',
       kind: 'project',
       featured: false,
@@ -118,6 +101,23 @@
         'Implemented a Q-learning agent that predicts the best action for a given board state.',
         'Designed a two-hidden-layer network that outputs a Q-value scoring each action from a feature vector of the game state.',
         'Built a reward function over stack height, line completions, holes and blockades to balance exploration against exploitation.'
+      ],
+      caseStudy: null
+    },
+    {
+      id: 'tsp-3d-model',
+      kind: 'project',
+      featured: false,
+      title: 'Traveling Salesman Problem 3D Model',
+      tagline: null,
+      url: 'https://github.com/zalu224/tsp-3d-model',
+      period: '2026',
+      role: 'Algorithms & visualization',
+      stack: ['Python', 'JavaScript', 'Three.js'],
+      bullets: [
+        'Built a nearest-neighbor greedy search and a 2-opt hill-climbing solver for the traveling salesman problem over 3D points.',
+        'Animated every search step in an interactive Three.js viewer served by a dependency-free Python backend, with play, step, reset and speed controls and a timeline that doubles as the tour-length curve.',
+        'Hill climbing shortens the greedy tour by 4–12% across eight point sets of 50 to 500 points.'
       ],
       caseStudy: null
     },
