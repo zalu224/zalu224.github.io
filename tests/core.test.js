@@ -115,7 +115,7 @@ test('featuredProjects and projectsByKind filter the shipped data', () => {
   const featured = Core.featuredProjects(globalThis.PROJECTS);
   assert.deepStrictEqual(featured.map((p) => p.id), ['pokecha', 'ofye']);
   assert.strictEqual(Core.projectsByKind(globalThis.PROJECTS, 'product').length, 2);
-  assert.strictEqual(Core.projectsByKind(globalThis.PROJECTS, 'project').length, 5);
+  assert.strictEqual(Core.projectsByKind(globalThis.PROJECTS, 'project').length, 6);
 });
 
 test('projectCardHtml renders title, meta, bullets, chips and an external link', () => {
