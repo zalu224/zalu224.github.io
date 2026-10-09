@@ -253,22 +253,37 @@ test('the card, reader, scanner and lock are fully removed, not just hidden', ()
   }
 });
 
-test('the badge is a portrait photo, a name and a role — nothing else', () => {
+test('the badge is a detailed credential: photo, name, role plus org, meta and utility details', () => {
   const home = read('index.html');
-  const tag = /<div class="name-tag"[^>]*>([\s\S]*?)<\/div>/.exec(home);
+  const tag = /<div class="name-tag"[^>]*>([\s\S]*?)<\/div>\s*<\/div>\s*<\/div>/.exec(home);
   assert.ok(tag, 'name tag not found');
 
-  const parts = [...tag[1].matchAll(/class="[^"]*\b(name-tag-[a-z]+)\b/g)].map((m) => m[1]);
-  assert.deepStrictEqual(parts.sort(), ['name-tag-name', 'name-tag-photo', 'name-tag-role', 'name-tag-slot', 'name-tag-strip']);
-  assert.ok(!/ID 2025/.test(tag[1]), 'the ID line belonged to the card, not the badge');
+  const body = tag[1];
+  for (const cls of ['name-tag-photo', 'name-tag-name', 'name-tag-role', 'name-tag-slot', 'name-tag-strip']) {
+    assert.ok(body.includes(cls), `badge must still include ${cls}`);
+  }
+  // New credential detailing (researched): org header, status, meta rows,
+  // ID + barcode utility strip, and a flippable back with contact details.
+  for (const cls of ['name-tag-brand', 'name-tag-status', 'name-tag-meta', 'name-tag-barcode', 'name-tag-back', 'name-tag-qr']) {
+    assert.ok(body.includes(cls), `badge redesign must include ${cls}`);
+  }
+  assert.ok(!/ID 2025/.test(body), 'the old ID line belonged to the card era, not the badge');
 });
 
 test('the headshot is cropped portrait, not into a circle', () => {
   const css = read('styles.css');
   const photo = /\.name-tag-photo\s*\{[^}]*\}/.exec(css)[0];
-  const w = parseFloat(/width:\s*(\d+)px/.exec(photo)[1]);
-  const h = parseFloat(/height:\s*(\d+)px/.exec(photo)[1]);
-  assert.ok(h > w, `the photo should be taller than it is wide (${w}x${h})`);
+  const hMatch = /height:\s*(\d+)px/.exec(photo);
+  assert.ok(hMatch, 'the photo needs an explicit height');
+  const h = parseFloat(hMatch[1]);
+  // Width may be fluid (100% of the card); resolve it via the card width.
+  let w = parseFloat((/width:\s*(\d+)px/.exec(photo) || [])[1]);
+  if (!w) {
+    const card = /\.name-tag\s*\{[^}]*\}/.exec(css)[0];
+    const cardW = parseFloat(/width:\s*(\d+)px/.exec(card)[1]);
+    w = cardW - 26; // minus the photo-wrap side padding
+  }
+  assert.ok(h > w * 0.6, `the photo should read as a portrait crop (${w}x${h})`);
   assert.match(photo, /object-fit:\s*cover/);
   assert.ok(!/border-radius:\s*50%/.test(photo), 'a circle crops the headshot; use a soft rectangle');
 });

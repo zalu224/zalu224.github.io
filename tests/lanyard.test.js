@@ -21,7 +21,11 @@ function makeEl(id, rect) {
       add: (c) => classes.add(c),
       remove: (c) => classes.delete(c),
       contains: (c) => classes.has(c),
-      toggle: (c, on) => { if (on) { classes.add(c); } else { classes.delete(c); } }
+      toggle: (c, on) => {
+        const force = on === undefined ? !classes.has(c) : !!on;
+        if (force) { classes.add(c); } else { classes.delete(c); }
+        return force;
+      }
     },
     _attrs: {},
     setAttribute(k, v) { this._attrs[k] = v; },
@@ -110,7 +114,7 @@ test('drop() reveals the lanyard, relabels the hint, and starts the simulation',
 
   assert.strictEqual(api.isDropped(), true);
   assert.strictEqual(lanyard._classes.has('is-dropped'), true);
-  assert.strictEqual(hint.textContent, 'Drag the badge', 'the hint should now point at the badge');
+  assert.strictEqual(hint.textContent, 'Drag the badge · Click to flip', 'the hint should now point at the badge and its flip');
   assert.ok(frames.length > 0, 'the physics loop should be running');
 
   // advance a few frames: the badge should be positioned and rotated by the rope
@@ -198,4 +202,20 @@ test('under reduced motion the badge hangs statically with no physics loop', () 
   assert.strictEqual(frames.length, 0, 'no animation loop should start');
   const d = path._attrs.d;
   assert.strictEqual((d.match(/L/g) || []).length, 1, 'a straight cord, not a simulated one');
+});
+
+test('tapping the badge flips it; a real drag does not', () => {
+  const { sandbox, nameTag, path } = bootstrap();
+  sandbox.Site.initLanyard().drop();
+  for (let i = 0; i < 200; i++) { sandbox._tick(); }
+  const resting = endOfPath(path);
+
+  nameTag.fire('pointerdown', { clientX: resting.x, clientY: resting.y, pointerId: 1 });
+  nameTag.fire('pointerup', { clientX: resting.x + 2, clientY: resting.y + 1, pointerId: 1 });
+  assert.strictEqual(nameTag._classes.has('is-flipped'), true, 'a tap should flip the badge');
+
+  nameTag.fire('pointerdown', { clientX: resting.x, clientY: resting.y, pointerId: 1 });
+  nameTag.fire('pointermove', { clientX: resting.x + 120, clientY: resting.y + 60, pointerId: 1 });
+  nameTag.fire('pointerup', { clientX: resting.x + 120, clientY: resting.y + 60, pointerId: 1 });
+  assert.strictEqual(nameTag._classes.has('is-flipped'), true, 'a drag must not toggle the flip');
 });

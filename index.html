@@ -22,17 +22,70 @@
   <section class="hero" id="hero">
     <div class="tag-stage" id="tag-stage" aria-hidden="true"></div>
 
-    <div class="lanyard" id="lanyard" aria-hidden="true">
+    <div class="lanyard" id="lanyard" aria-hidden="false">
       <svg class="lanyard-cord" preserveAspectRatio="none"><path id="lanyard-path" /></svg>
-      <div class="name-tag" id="name-tag">
-        <span class="name-tag-strip"><span class="name-tag-slot"></span></span>
-        <img class="name-tag-photo" src="img/image.png" alt="Aaron Lu" width="116" height="142">
-        <span class="name-tag-name serif">Aaron Lu</span>
-        <span class="name-tag-role mono">Technical Product Manager</span>
+      <div class="name-tag" id="name-tag" tabindex="0" role="button" aria-label="Aaron Lu ID badge — activate to flip for contact details">
+        <div class="name-tag-inner" id="name-tag-inner">
+          <div class="name-tag-face name-tag-front">
+            <span class="name-tag-strip"><span class="name-tag-grommet"><span class="name-tag-slot"></span></span></span>
+            <div class="name-tag-brand mono">
+              <span>USC &middot; Viterbi</span>
+              <span class="name-tag-chip">TPM</span>
+            </div>
+            <div class="name-tag-photo-wrap">
+              <img class="name-tag-photo" src="img/image.png" alt="Aaron Lu" width="208" height="210">
+              <span class="name-tag-status mono"><span class="name-tag-dot"></span>Los Angeles &middot; USC</span>
+            </div>
+            <div class="name-tag-body">
+              <span class="name-tag-name serif">Aaron Lu</span>
+              <span class="name-tag-title mono">Technical Product Manager</span>
+              <dl class="name-tag-meta mono">
+                <div><dt>Program</dt><dd>M.S. CS &mdash; AI &rsquo;27</dd></div>
+                <div><dt>Focus</dt><dd>Product &middot; Strategy &middot; AI</dd></div>
+              </dl>
+            </div>
+            <div class="name-tag-foot mono">
+              <div class="name-tag-id">
+                <span class="name-tag-id-label">ID No</span>
+                <span class="name-tag-id-value">AL&ndash;2026&ndash;USC</span>
+              </div>
+              <span class="name-tag-barcode" aria-hidden="true"></span>
+            </div>
+            <span class="name-tag-role mono">Technical Product Manager &middot; Click to flip</span>
+          </div>
+          <div class="name-tag-face name-tag-back" aria-hidden="true">
+            <p class="name-tag-back-eyebrow mono">Scan to connect</p>
+            <div class="name-tag-qr" aria-hidden="true">
+              <svg viewBox="0 0 29 29" width="104" height="104" shape-rendering="crispEdges">
+                <rect x="0" y="0" width="29" height="29" fill="#fff"/>
+                <g fill="#16161a">
+                  <rect x="2" y="2" width="7" height="7"/><rect x="3.5" y="3.5" width="4" height="4" fill="#fff"/><rect x="4.5" y="4.5" width="2" height="2"/>
+                  <rect x="20" y="2" width="7" height="7"/><rect x="21.5" y="3.5" width="4" height="4" fill="#fff"/><rect x="22.5" y="4.5" width="2" height="2"/>
+                  <rect x="2" y="20" width="7" height="7"/><rect x="3.5" y="21.5" width="4" height="4" fill="#fff"/><rect x="4.5" y="22.5" width="2" height="2"/>
+                  <rect x="11" y="2" width="2" height="2"/><rect x="15" y="3" width="2" height="2"/><rect x="11" y="6" width="2" height="2"/>
+                  <rect x="2" y="11" width="2" height="2"/><rect x="6" y="12" width="2" height="2"/><rect x="12" y="11" width="3" height="2"/>
+                  <rect x="16" y="12" width="2" height="2"/><rect x="21" y="11" width="2" height="2"/><rect x="25" y="12" width="2" height="2"/>
+                  <rect x="11" y="15" width="2" height="2"/><rect x="14" y="16" width="2" height="2"/><rect x="18" y="15" width="2" height="2"/>
+                  <rect x="23" y="16" width="2" height="2"/><rect x="12" y="19" width="2" height="2"/><rect x="17" y="20" width="3" height="2"/>
+                  <rect x="22" y="20" width="2" height="2"/><rect x="12" y="23" width="2" height="2"/><rect x="16" y="24" width="2" height="2"/>
+                  <rect x="20" y="24" width="2" height="2"/><rect x="25" y="23" width="2" height="2"/>
+                </g>
+                <circle cx="14.5" cy="14.5" r="3.2" fill="#1f3fd4"/><circle cx="14.5" cy="14.5" r="1.4" fill="#fff"/>
+              </svg>
+              <span class="mono">aaronlu &middot; LA</span>
+            </div>
+            <ul class="name-tag-links mono">
+              <li><span>GitHub</span><span>zalu224</span></li>
+              <li><span>Mail</span><span>hello &mdash; via Contact</span></li>
+              <li><span>Valid</span><span>Thru 2027</span></li>
+            </ul>
+            <span class="name-tag-role mono">USC Viterbi &middot; M.S. CS&ndash;AI</span>
+          </div>
+        </div>
       </div>
     </div>
 
-    <p class="drag-hint eyebrow" id="drag-hint">Drag the badge</p>
+    <p class="drag-hint eyebrow" id="drag-hint">Drag the badge &middot; Click to flip</p>
 
     <div class="scroll-cue" aria-hidden="true">
       <span>Scroll</span>

@@ -111,6 +111,8 @@
     var dragPoint = null;
     var grabOffset = { x: 0, y: 0 };
     var dropped = false;
+    var downPos = null;
+    var FLIP_HINT = 'Drag the badge · Click to flip';
 
     // Hang the badge over the card stage, so it never crosses the name column.
     function layout() {
@@ -164,9 +166,16 @@
       tag.style.transform = 'translate3d(' + x + 'px,' + y + 'px,0)';
     }
 
+    function toggleFlip() {
+      tag.classList.toggle('is-flipped');
+      var back = tag.querySelector ? tag.querySelector('.name-tag-back') : null;
+      if (back) { back.setAttribute('aria-hidden', tag.classList.contains('is-flipped') ? 'false' : 'true'); }
+    }
+
     tag.addEventListener('pointerdown', function (event) {
       if (!dropped) { return; }
       dragging = true;
+      downPos = { x: event.clientX, y: event.clientY };
       tag.classList.add('is-dragging');
       tag.setPointerCapture(event.pointerId);
       var at = toHero(event);
@@ -186,6 +195,13 @@
     function release(event) {
       if (!dragging) { return; }
       dragging = false;
+      // A press without much travel is a tap: flip the badge over.
+      if (downPos && event && event.clientX !== undefined) {
+        var dx = event.clientX - downPos.x;
+        var dy = event.clientY - downPos.y;
+        if (Math.sqrt(dx * dx + dy * dy) < 8) { toggleFlip(); }
+      }
+      downPos = null;
       dragPoint = null;
       tag.classList.remove('is-dragging');
       if (tag.hasPointerCapture && tag.hasPointerCapture(event.pointerId)) {
@@ -195,6 +211,13 @@
     }
     tag.addEventListener('pointerup', release);
     tag.addEventListener('pointercancel', release);
+    tag.addEventListener('keydown', function (event) {
+      if (!dropped) { return; }
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        toggleFlip();
+      }
+    });
 
     global.addEventListener('resize', function () {
       if (!rope || dragging) { return; }
@@ -210,7 +233,7 @@
         root.classList.add('is-dropped');
 
         var hint = document.getElementById('drag-hint');
-        if (hint) { hint.textContent = 'Drag the badge'; }
+        if (hint) { hint.textContent = FLIP_HINT; }
 
         var at = layout();
         if (prefersReducedMotion()) {
