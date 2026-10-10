@@ -253,19 +253,23 @@ test('the card, reader, scanner and lock are fully removed, not just hidden', ()
   }
 });
 
-test('the badge is a detailed credential: photo, name, role plus org, meta and utility details', () => {
+test('the badge is a lean credential: photo, name, one title line, ID + barcode, flippable back', () => {
   const home = read('index.html');
   const tag = /<div class="name-tag"[^>]*>([\s\S]*?)<\/div>\s*<\/div>\s*<\/div>/.exec(home);
   assert.ok(tag, 'name tag not found');
 
   const body = tag[1];
-  for (const cls of ['name-tag-photo', 'name-tag-name', 'name-tag-role', 'name-tag-slot', 'name-tag-strip']) {
+  for (const cls of ['name-tag-photo', 'name-tag-name', 'name-tag-title', 'name-tag-slot', 'name-tag-strip']) {
     assert.ok(body.includes(cls), `badge must still include ${cls}`);
   }
-  // New credential detailing (researched): org header, status, meta rows,
-  // ID + barcode utility strip, and a flippable back with contact details.
-  for (const cls of ['name-tag-brand', 'name-tag-status', 'name-tag-meta', 'name-tag-barcode', 'name-tag-back', 'name-tag-qr']) {
+  // Kept detailing: org header, ID + barcode utility strip, and a readable
+  // back with conversation starters. No fake QR, no status pill, no meta
+  // rows repeating the hero, no role band repeating the title.
+  for (const cls of ['name-tag-brand', 'name-tag-barcode', 'name-tag-back', 'name-tag-ask', 'name-tag-accent']) {
     assert.ok(body.includes(cls), `badge redesign must include ${cls}`);
+  }
+  for (const cls of ['name-tag-qr', 'name-tag-status', 'name-tag-meta', 'name-tag-role', 'name-tag-chip', 'name-tag-links']) {
+    assert.ok(!body.includes(cls), `badge must not carry AI-slop detailing ${cls}`);
   }
   assert.ok(!/ID 2025/.test(body), 'the old ID line belonged to the card era, not the badge');
 });

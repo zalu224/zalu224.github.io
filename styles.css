@@ -422,11 +422,28 @@ a.contact-row:hover .contact-arrow { transform: translateX(4px); }
 .name-tag.is-dragging { cursor: grabbing; }
 .name-tag:focus-visible { outline-offset: 6px; }
 
+/* The inner is a transparent 3D stage only: no background, border, shadow
+   or overflow here. Paint lives on the faces below, because any grouping
+   property (notably overflow != visible) forces transform-style back to
+   flat and the flipped back renders mirrored / unreadable. */
 .name-tag-inner {
   position: relative;
   width: 100%;
+  -webkit-transform-style: preserve-3d;
   transform-style: preserve-3d;
+  -webkit-transition: -webkit-transform 600ms var(--ease-spring);
   transition: transform 600ms var(--ease-spring);
+  background: transparent;
+  border: 0;
+}
+.name-tag.is-flipped .name-tag-inner {
+  -webkit-transform: rotateY(180deg);
+  transform: rotateY(180deg);
+}
+
+.name-tag-face {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
   background: var(--surface);
   border: 1px solid rgba(20, 20, 25, 0.12);
   border-radius: 16px;
@@ -436,9 +453,9 @@ a.contact-row:hover .contact-arrow { transform: translateX(4px); }
     0 34px 48px -26px rgba(31, 63, 212, 0.28);
   overflow: hidden;
 }
-.name-tag.is-flipped .name-tag-inner { transform: rotateY(180deg); }
+.name-tag-front { position: relative; }
 /* Sheen sweep, like laminate catching the light while it swings. */
-.name-tag-inner::after {
+.name-tag-front::after {
   content: "";
   position: absolute;
   inset: -40% -70%;
@@ -447,17 +464,13 @@ a.contact-row:hover .contact-arrow { transform: translateX(4px); }
   opacity: 0;
   pointer-events: none;
 }
-.name-tag.is-dragging .name-tag-inner::after { opacity: 0.7; }
-
-.name-tag-face {
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-}
+.name-tag.is-dragging .name-tag-front::after { opacity: 0.7; }
 .name-tag-back {
   position: absolute;
   inset: 0;
   display: flex;
   flex-direction: column;
+  -webkit-transform: rotateY(180deg);
   transform: rotateY(180deg);
   background:
     radial-gradient(120% 60% at 50% -10%, rgba(31,63,212,0.08), transparent 60%),
@@ -495,10 +508,9 @@ a.contact-row:hover .contact-arrow { transform: translateX(4px); }
   width: 74px;
   height: 18px;
   border-radius: 10px;
-  background: linear-gradient(180deg, #e8e8ec, #c9c9d1 45%, #f4f4f6 55%, #b9b9c2);
+  background: #c4c4cd;
   box-shadow:
-    inset 0 1px 1px rgba(255,255,255,0.9),
-    inset 0 -1px 2px rgba(20,20,25,0.35),
+    inset 0 1px 2px rgba(20,20,25,0.35),
     0 1px 0 rgba(255,255,255,0.9);
 }
 .name-tag-slot {
@@ -523,18 +535,10 @@ a.contact-row:hover .contact-arrow { transform: translateX(4px); }
   letter-spacing: 0.22em;
   text-transform: uppercase;
   color: var(--faint);
-  border-bottom: 1px dashed rgba(20,20,25,0.14);
-}
-.name-tag-chip {
-  padding: 0.15rem 0.5rem;
-  border-radius: 999px;
-  background: var(--ink);
-  color: #fff;
-  font-size: 8px;
-  letter-spacing: 0.18em;
+  border-bottom: 1px solid var(--line);
 }
 
-/* Framed portrait with an overlapping status pill. */
+/* Framed portrait, plain and printed. */
 .name-tag-photo-wrap {
   position: relative;
   padding: 0.8rem 0.8rem 0;
@@ -548,30 +552,6 @@ a.contact-row:hover .contact-arrow { transform: translateX(4px); }
   border: 1px solid rgba(20, 20, 25, 0.12);
   margin: 0;
   background: var(--paper);
-}
-.name-tag-status {
-  position: absolute;
-  left: 1.3rem;
-  bottom: 0.55rem;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.28rem 0.6rem;
-  border-radius: 999px;
-  background: rgba(255,255,255,0.92);
-  border: 1px solid var(--line);
-  backdrop-filter: blur(6px);
-  font-size: 8px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--ink);
-}
-.name-tag-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--led);
-  box-shadow: 0 0 0 3px rgba(22,163,74,0.18);
 }
 
 /* Hero name first, everything else secondary. Left-aligned for scan. */
@@ -590,20 +570,8 @@ a.contact-row:hover .contact-arrow { transform: translateX(4px); }
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--accent);
-  margin-bottom: 0.65rem;
+  margin-bottom: 0.2rem;
 }
-.name-tag-meta { margin: 0; border-top: 1px solid var(--line); }
-.name-tag-meta > div {
-  display: flex;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.42rem 0;
-  border-bottom: 1px solid var(--line);
-  font-size: 8.5px;
-  letter-spacing: 0.08em;
-}
-.name-tag-meta dt { color: var(--faint); text-transform: uppercase; margin: 0; }
-.name-tag-meta dd { margin: 0; color: var(--ink); text-align: right; }
 
 /* Utility strip: ID number + faux barcode. */
 .name-tag-foot {
@@ -613,14 +581,7 @@ a.contact-row:hover .contact-arrow { transform: translateX(4px); }
   gap: 0.75rem;
   padding: 0.6rem 1rem 0.7rem;
 }
-.name-tag-id { display: flex; flex-direction: column; gap: 0.1rem; text-align: left; }
-.name-tag-id-label {
-  font-size: 7.5px;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-  color: var(--faint);
-}
-.name-tag-id-value { font-size: 10px; letter-spacing: 0.12em; color: var(--ink); }
+.name-tag-id-value { font-size: 10px; letter-spacing: 0.12em; color: var(--muted); }
 .name-tag-barcode {
   flex: 0 0 84px;
   height: 30px;
@@ -631,56 +592,28 @@ a.contact-row:hover .contact-arrow { transform: translateX(4px); }
     var(--ink) 8px 11px, transparent 11px 13px);
   opacity: 0.9;
 }
-.name-tag-role {
+/* Slim accent baseline instead of a repeated role band. */
+.name-tag-accent {
   display: block;
-  margin: 0;
-  padding: 0.68rem 0.5rem;
-  background: var(--ink);
-  font-size: 8px;
-  line-height: 1.6;
-  color: rgba(246, 245, 242, 0.88);
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  text-align: center;
+  height: 4px;
+  background: var(--accent);
 }
 
-/* Back face details. */
-.name-tag-back-eyebrow {
+/* Back face: three honest conversation starters, nothing else. */
+.name-tag-ask {
   margin: 0;
-  padding: 0.9rem 1rem 0.6rem;
-  font-size: 9px;
-  letter-spacing: 0.28em;
-  text-transform: uppercase;
-  color: var(--faint);
-  text-align: center;
-  border-bottom: 1px dashed rgba(20,20,25,0.14);
+  padding: 0.4rem 1rem 1rem;
 }
-.name-tag-qr {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 1rem;
+.name-tag-ask li {
+  padding: 0.7rem 0;
+  border-bottom: 1px solid var(--line);
+  font-family: var(--serif);
+  font-size: 1.05rem;
+  line-height: 1.3;
+  color: var(--ink);
 }
-.name-tag-qr svg {
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 6px;
-  background: #fff;
-}
-.name-tag-qr span { font-size: 8.5px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); }
-.name-tag-links { margin: 0; padding: 0 1rem; }
-.name-tag-links li {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 0.5rem 0;
-  border-top: 1px solid var(--line);
-  font-size: 9px;
-  letter-spacing: 0.06em;
-}
-.name-tag-links li span:first-child { color: var(--faint); text-transform: uppercase; letter-spacing: 0.18em; font-size: 8px; }
-.name-tag-back .name-tag-role { margin-top: auto; }
+.name-tag-ask li:last-child { border-bottom: 0; }
+.name-tag-back .name-tag-accent { margin-top: auto; }
 
 .scroll-cue {
   position: absolute;
@@ -759,8 +692,7 @@ a.contact-row:hover .contact-arrow { transform: translateX(4px); }
   .name-tag-strip::before { height: 12px; }
   .name-tag-photo { height: 172px; }
   .name-tag-name { font-size: 1.55rem; }
-  .name-tag-role { font-size: 7.5px; padding: 0.6rem 0.4rem; letter-spacing: 0.14em; }
-  .name-tag-meta > div { font-size: 8px; }
+  .name-tag-ask li { font-size: 0.95rem; }
 }
 
 /* ---------- reduced motion ---------- */
