@@ -348,3 +348,23 @@ test('every page footer reads "Built with intention" at bottom right', () => {
       `${page} footer must end with "Built with intention"`);
   }
 });
+
+test('the page header keeps the column side padding on every width', () => {
+  // `.page-head` once set shorthand `padding: 9rem 0 3rem`, which beat
+  // `.column`'s `0 1.5rem` and pressed the heading against the phone edge.
+  const css = read('styles.css');
+  for (const m of css.matchAll(/\.page-head\s*\{([^}]*)\}/g)) {
+    assert.doesNotMatch(m[1], /(^|[^-])padding\s*:/, '.page-head must only set padding-top/bottom');
+  }
+});
+
+test('the scroll cue sits inside the CTA row, stacked under Get in Touch', () => {
+  const home = read('index.html');
+  const cta = /<div class="hero-cta">([\s\S]*?)\n      <\/div>/.exec(home);
+  assert.ok(cta, 'hero-cta block present');
+  assert.match(cta[1], /Get in Touch[\s\S]*class="scroll-cue"/, 'scroll cue follows the Get in Touch link');
+  const css = read('styles.css');
+  const cue = /\.scroll-cue\s*\{([^}]*)\}/.exec(css)[1];
+  assert.doesNotMatch(cue, /position:\s*absolute/, 'scroll cue must be in flow, not floated over the hero');
+  assert.match(cue, /grid-column:\s*2/, 'scroll cue shares the second CTA column with Get in Touch');
+});
