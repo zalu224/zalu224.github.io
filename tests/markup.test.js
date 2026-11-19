@@ -33,7 +33,7 @@ test('every local href and src on every page resolves to a real file', () => {
     for (const m of html.matchAll(/(?:href|src)="([^"]+)"/g)) {
       const ref = m[1];
       if (/^(https?:|mailto:|tel:|#|data:)/.test(ref)) { continue; }
-      const target = ref.split('#')[0];
+      const target = ref.split('#')[0].split('?')[0];
       if (!target) { continue; }
       assert.ok(
         fs.existsSync(path.join(ROOT, target)),
@@ -263,12 +263,12 @@ test('the badge is a lean credential: photo, name, one title line, ID + barcode,
     assert.ok(body.includes(cls), `badge must still include ${cls}`);
   }
   // Kept detailing: org header, ID + barcode utility strip, and a readable
-  // back with conversation starters. No fake QR, no status pill, no meta
+  // back listing conferences attended. No fake QR, no status pill, no meta
   // rows repeating the hero, no role band repeating the title.
-  for (const cls of ['name-tag-brand', 'name-tag-barcode', 'name-tag-back', 'name-tag-ask', 'name-tag-accent']) {
+  for (const cls of ['name-tag-brand', 'name-tag-barcode', 'name-tag-back', 'name-tag-events', 'name-tag-accent']) {
     assert.ok(body.includes(cls), `badge redesign must include ${cls}`);
   }
-  for (const cls of ['name-tag-qr', 'name-tag-status', 'name-tag-meta', 'name-tag-role', 'name-tag-chip', 'name-tag-links']) {
+  for (const cls of ['name-tag-qr', 'name-tag-status', 'name-tag-meta', 'name-tag-role', 'name-tag-chip', 'name-tag-links', 'name-tag-ask']) {
     assert.ok(!body.includes(cls), `badge must not carry AI-slop detailing ${cls}`);
   }
   assert.ok(!/ID 2025/.test(body), 'the old ID line belonged to the card era, not the badge');
@@ -367,4 +367,45 @@ test('the scroll cue sits inside the CTA row, stacked under Get in Touch', () =>
   const cue = /\.scroll-cue\s*\{([^}]*)\}/.exec(css)[1];
   assert.doesNotMatch(cue, /position:\s*absolute/, 'scroll cue must be in flow, not floated over the hero');
   assert.match(cue, /grid-column:\s*2/, 'scroll cue shares the second CTA column with Get in Touch');
+});
+
+test('the back of the badge shows conferences attended, not conversation traits', () => {
+  const home = read('index.html');
+  const back = /<ul class="name-tag-events">([\s\S]*?)<\/ul>/.exec(home);
+  assert.ok(back, 'the back needs its list of event tags');
+  const tags = [...back[1].matchAll(/<li class="event-tag[^"]*">\s*<span class="event-tag-name">([^<]*)<\/span>\s*<span class="event-tag-place">([^<]*)<\/span>/g)]
+    .map((m) => m[1] + ' | ' + m[2]);
+  assert.deepStrictEqual(tags, [
+    'TomorrowXAI 2026 | Austin, TX',
+    'CES 2025 | Las Vegas, NV',
+    'CABB Brokers Conference | San Diego, CA',
+    'CABB Brokers Conference | Santa Rosa, CA'
+  ]);
+  for (const gone of ['Ask me about', 'Provably-fair collectibles', 'Membership platforms']) {
+    assert.ok(!home.includes(gone), `old back-of-badge trait remains: ${gone}`);
+  }
+});
+
+test('the hero route graphic is decorative and links to the project it comes from', () => {
+  const home = read('index.html');
+  assert.match(home, /<canvas class="route-field" id="route-field" aria-hidden="true">/);
+  assert.match(home, /class="route-note[^"]*" href="projects\.html#tsp-3d-model"/);
+  assert.ok(read('data/projects.js').includes("id: 'tsp-3d-model'"), 'the linked project must exist');
+});
+
+test('every page loads its CSS and scripts under the current asset version', () => {
+  // Without this, a returning visitor gets new HTML against cached old
+  // CSS/JS and the page renders broken. Fix a failure by running
+  // `node scripts/stamp-assets.js`.
+  const { ASSETS, assetVersion } = require('../scripts/stamp-assets.js');
+  const version = assetVersion();
+  for (const page of PAGES) {
+    const html = read(page);
+    for (const m of html.matchAll(/(?:href|src)="([^"]+)"/g)) {
+      const file = m[1].split('?')[0];
+      if (!ASSETS.includes(file)) { continue; }
+      assert.strictEqual(m[1], file + '?v=' + version,
+        `${page} loads ${m[1]} but the current asset version is ${version}; run node scripts/stamp-assets.js`);
+    }
+  }
 });
