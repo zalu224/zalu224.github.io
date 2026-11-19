@@ -378,8 +378,8 @@ test('the back of the badge shows conferences attended, not conversation traits'
   assert.deepStrictEqual(tags, [
     'TomorrowXAI 2026 | Austin, TX',
     'CES 2025 | Las Vegas, NV',
-    'CABB Brokers Conference | San Diego, CA',
-    'CABB Brokers Conference | Santa Rosa, CA'
+    'CABB 2026 | San Diego, CA',
+    'CABB 2025 | Santa Rosa, CA'
   ]);
   for (const gone of ['Ask me about', 'Provably-fair collectibles', 'Membership platforms']) {
     assert.ok(!home.includes(gone), `old back-of-badge trait remains: ${gone}`);
