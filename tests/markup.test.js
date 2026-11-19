@@ -409,3 +409,12 @@ test('every page loads its CSS and scripts under the current asset version', () 
     }
   }
 });
+
+test('every page carries the Aa favicon so the tab does not show a default globe', () => {
+  for (const page of PAGES) {
+    const html = read(page);
+    assert.match(html, /<link rel="icon" href="favicon\.svg" type="image\/svg\+xml">/, `${page} needs the SVG icon`);
+    assert.match(html, /<link rel="icon" href="favicon\.png"/, `${page} needs the PNG fallback`);
+    assert.match(html, /<link rel="apple-touch-icon" href="apple-touch-icon\.png">/, `${page} needs the touch icon`);
+  }
+});
