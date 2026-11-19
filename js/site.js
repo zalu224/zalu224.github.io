@@ -139,8 +139,15 @@
       path.setAttribute('d', d);
 
       var e = rope.end();
+      var angle = rope.angleDeg();
       tag.style.transform = 'translate3d(' + e.x.toFixed(1) + 'px,' + e.y.toFixed(1) +
-        'px,0) rotate(' + rope.angleDeg().toFixed(2) + 'deg)';
+        'px,0) rotate(' + angle.toFixed(2) + 'deg)';
+      // The laminate glint follows the swing: it slides across the face as
+      // the badge tilts and fades out as the badge comes to rest.
+      if (tag.style.setProperty) {
+        tag.style.setProperty('--swing', angle.toFixed(2));
+        tag.style.setProperty('--glint', Math.min(1, Math.abs(angle) / 12).toFixed(2));
+      }
     }
 
     function frame() {
@@ -252,6 +259,172 @@
     };
   }
 
+  // The hero backdrop: a scatter of stops joined by a tangled tour that a
+  // 2-opt search untangles once, on load, then leaves still. Same algorithm
+  // as the TSP project it links to.
+  function initRouteField() {
+    var canvas = document.getElementById('route-field');
+    var hero = document.getElementById('hero');
+    if (!canvas || !hero || !canvas.getContext) { return; }
+    var ctx = canvas.getContext('2d');
+    if (!ctx) { return; }
+
+    var note = document.getElementById('route-note-text');
+    var avoid = hero.querySelector ? hero.querySelector('.hero-name') : null;
+    var STEP_MS = 60;
+    var GLOW_MS = 700;
+    var tour = null;
+    var startLength = 0;
+    var fresh = [];
+    var solved = false;
+    var raf = 0;
+    var lastMove = 0;
+    var width = 0;
+    var height = 0;
+
+    function scatter() {
+      var heroRect = hero.getBoundingClientRect();
+      var keepOut = null;
+      if (avoid) {
+        var r = avoid.getBoundingClientRect();
+        keepOut = { left: r.left - heroRect.left - 12, right: r.right - heroRect.left + 12,
+                    top: r.top - heroRect.top - 12, bottom: r.bottom - heroRect.top + 12 };
+      }
+      var target = Core.clamp(Math.round(width * height / 20000), 18, 64);
+      var cols = Math.max(3, Math.round(Math.sqrt(target * width / height)));
+      var rows = Math.max(3, Math.round(target / cols));
+      var cw = width / cols;
+      var ch = height / rows;
+      var pts = [];
+      for (var row = 0; row < rows; row++) {
+        for (var col = 0; col < cols; col++) {
+          var x = (col + 0.5 + (Math.random() - 0.5) * 0.75) * cw;
+          var y = (row + 0.5 + (Math.random() - 0.5) * 0.75) * ch;
+          if (keepOut && x > keepOut.left && x < keepOut.right &&
+              y > keepOut.top && y < keepOut.bottom) { continue; }
+          pts.push({ x: x, y: y });
+        }
+      }
+      // Visit the stops in random order so the opening tour is a real tangle.
+      for (var i = pts.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var swap = pts[i];
+        pts[i] = pts[j];
+        pts[j] = swap;
+      }
+      return pts;
+    }
+
+    function build() {
+      var rect = hero.getBoundingClientRect();
+      var ratio = Math.min(global.devicePixelRatio || 1, 2);
+      width = rect.width;
+      height = rect.height;
+      canvas.width = Math.round(width * ratio);
+      canvas.height = Math.round(height * ratio);
+      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+      tour = Core.createTour(scatter());
+      startLength = tour.length();
+      fresh = [];
+      solved = false;
+    }
+
+    function report() {
+      if (!note || !startLength) { return; }
+      var saved = Math.round((1 - tour.length() / startLength) * 100);
+      note.textContent = solved
+        ? tour.points.length + ' stops, route ' + saved + '% shorter after 2-opt'
+        : 'Untangling ' + tour.points.length + ' stops: ' + saved + '% shorter';
+    }
+
+    function draw(now) {
+      var pts = tour.points;
+      var order = tour.order;
+      var i;
+      ctx.clearRect(0, 0, width, height);
+
+      ctx.beginPath();
+      for (i = 0; i < order.length; i++) {
+        var p = pts[order[i]];
+        if (i === 0) { ctx.moveTo(p.x, p.y); } else { ctx.lineTo(p.x, p.y); }
+      }
+      ctx.closePath();
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = 'rgba(31, 63, 212, 0.2)';
+      ctx.stroke();
+
+      // Edges the search just laid down glow, then cool into the route.
+      for (i = fresh.length - 1; i >= 0; i--) {
+        var heat = 1 - (now - fresh[i].at) / GLOW_MS;
+        if (heat <= 0) { fresh.splice(i, 1); continue; }
+        ctx.beginPath();
+        ctx.moveTo(pts[fresh[i].a].x, pts[fresh[i].a].y);
+        ctx.lineTo(pts[fresh[i].b].x, pts[fresh[i].b].y);
+        ctx.lineWidth = 1 + heat;
+        ctx.strokeStyle = 'rgba(31, 63, 212, ' + (0.75 * heat).toFixed(3) + ')';
+        ctx.stroke();
+      }
+
+      for (i = 0; i < pts.length; i++) {
+        ctx.beginPath();
+        ctx.arc(pts[i].x, pts[i].y, 2.5, 0, Math.PI * 2);
+        ctx.fillStyle = '#f6f5f2';
+        ctx.fill();
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = 'rgba(22, 22, 26, 0.38)';
+        ctx.stroke();
+      }
+    }
+
+    function frame(now) {
+      raf = 0;
+      if (!solved && now - lastMove >= STEP_MS) {
+        lastMove = now;
+        var move = tour.improve();
+        if (move) {
+          fresh.push({ a: move.edges[0][0], b: move.edges[0][1], at: now });
+          fresh.push({ a: move.edges[1][0], b: move.edges[1][1], at: now });
+        } else {
+          solved = true;
+        }
+        report();
+      }
+      draw(now);
+      if (!solved || fresh.length) { raf = requestAnimationFrame(frame); }
+    }
+
+    function solveNow() {
+      while (tour.improve()) { /* run to the 2-opt optimum */ }
+      solved = true;
+      report();
+      draw(0);
+    }
+
+    build();
+    canvas.classList.add('is-live');
+    if (prefersReducedMotion()) {
+      solveNow();
+    } else {
+      report();
+      draw(0);
+      // Hold the tangle for a beat so the untangling reads as a change.
+      setTimeout(function () { raf = requestAnimationFrame(frame); }, 700);
+    }
+
+    var resizeTimer = 0;
+    var builtWidth = width;
+    global.addEventListener('resize', function () {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(function () {
+        if (Math.abs(hero.getBoundingClientRect().width - builtWidth) < 2) { return; }
+        if (raf) { cancelAnimationFrame(raf); raf = 0; }
+        build();
+        builtWidth = width;
+        solveNow();
+      }, 200);
+    }, { passive: true });
+  }
+
   function animateCount(node) {
     var spec = Core.parseCountable(node.textContent);
     if (!spec) { return; }
@@ -301,6 +474,9 @@
 
   function initPageTransitions() {
     if (prefersReducedMotion()) { return; }
+    // Browsers with cross-document view transitions animate the navigation
+    // natively (see @view-transition in styles.css); the wipe is the fallback.
+    if (global.CSSViewTransitionRule) { return; }
 
     var wipe = document.createElement('div');
     wipe.className = 'wipe';
@@ -315,10 +491,6 @@
           href.indexOf('tel:') === 0) { return; }
 
       event.preventDefault();
-      if (document.startViewTransition) {
-        document.startViewTransition(function () { global.location.href = href; });
-        return;
-      }
       wipe.classList.add('is-active');
       setTimeout(function () { global.location.href = href; }, 220);
     });
@@ -335,6 +507,7 @@
       setTimeout(function () { lanyard.drop(); }, 350);
     }
 
+    initRouteField();
     initReveals();
     initCounters();
     initMagnetic();
@@ -348,6 +521,7 @@
     renderWork: renderWork,
     renderHome: renderHome,
     initLanyard: initLanyard,
+    initRouteField: initRouteField,
     initCounters: initCounters,
     initMagnetic: initMagnetic,
     initPageTransitions: initPageTransitions,

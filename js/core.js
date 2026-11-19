@@ -236,7 +236,65 @@
     };
   }
 
+  // A closed tour over 2D points, improved one 2-opt move at a time. Each call
+  // to improve() reverses the single segment that shortens the tour the most
+  // and reports the two edges it created, so a caller can animate the search.
+  // Returns null once no reversal helps: the tour is 2-opt optimal.
+  function createTour(points) {
+    var n = points.length;
+    var order = [];
+    for (var i = 0; i < n; i++) { order.push(i); }
+
+    function dist(a, b) {
+      var dx = points[a].x - points[b].x;
+      var dy = points[a].y - points[b].y;
+      return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    function length() {
+      var total = 0;
+      for (var k = 0; k < n; k++) { total += dist(order[k], order[(k + 1) % n]); }
+      return total;
+    }
+
+    function improve() {
+      if (n < 4) { return null; }
+      var bestGain = 1e-6;
+      var bestI = -1;
+      var bestJ = -1;
+      for (var a = 0; a < n - 1; a++) {
+        for (var b = a + 2; b < n; b++) {
+          if (a === 0 && b === n - 1) { continue; }
+          var a1 = order[a], a2 = order[a + 1];
+          var b1 = order[b], b2 = order[(b + 1) % n];
+          var gain = dist(a1, a2) + dist(b1, b2) - dist(a1, b1) - dist(a2, b2);
+          if (gain > bestGain) { bestGain = gain; bestI = a; bestJ = b; }
+        }
+      }
+      if (bestI === -1) { return null; }
+      var lo = bestI + 1;
+      var hi = bestJ;
+      while (lo < hi) {
+        var tmp = order[lo];
+        order[lo] = order[hi];
+        order[hi] = tmp;
+        lo++;
+        hi--;
+      }
+      return {
+        gain: bestGain,
+        edges: [
+          [order[bestI], order[bestI + 1]],
+          [order[bestJ], order[(bestJ + 1) % n]]
+        ]
+      };
+    }
+
+    return { points: points, order: order, length: length, improve: improve };
+  }
+
   var api = {
+    createTour: createTour,
     clamp: clamp,
     parseCountable: parseCountable,
     formatCount: formatCount,
