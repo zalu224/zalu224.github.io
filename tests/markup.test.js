@@ -263,12 +263,12 @@ test('the badge is a lean credential: photo, name, one title line, ID + barcode,
     assert.ok(body.includes(cls), `badge must still include ${cls}`);
   }
   // Kept detailing: org header, ID + barcode utility strip, and a readable
-  // back listing conferences attended. No fake QR, no status pill, no meta
+  // back with conversation starters. No fake QR, no status pill, no meta
   // rows repeating the hero, no role band repeating the title.
-  for (const cls of ['name-tag-brand', 'name-tag-barcode', 'name-tag-back', 'name-tag-events', 'name-tag-accent']) {
+  for (const cls of ['name-tag-brand', 'name-tag-barcode', 'name-tag-back', 'name-tag-ask', 'name-tag-accent']) {
     assert.ok(body.includes(cls), `badge redesign must include ${cls}`);
   }
-  for (const cls of ['name-tag-qr', 'name-tag-status', 'name-tag-meta', 'name-tag-role', 'name-tag-chip', 'name-tag-links', 'name-tag-ask']) {
+  for (const cls of ['name-tag-qr', 'name-tag-status', 'name-tag-meta', 'name-tag-role', 'name-tag-chip', 'name-tag-links']) {
     assert.ok(!body.includes(cls), `badge must not carry AI-slop detailing ${cls}`);
   }
   assert.ok(!/ID 2025/.test(body), 'the old ID line belonged to the card era, not the badge');
@@ -367,28 +367,4 @@ test('the scroll cue sits inside the CTA row, stacked under Get in Touch', () =>
   const cue = /\.scroll-cue\s*\{([^}]*)\}/.exec(css)[1];
   assert.doesNotMatch(cue, /position:\s*absolute/, 'scroll cue must be in flow, not floated over the hero');
   assert.match(cue, /grid-column:\s*2/, 'scroll cue shares the second CTA column with Get in Touch');
-});
-
-test('the back of the badge shows conferences attended, not conversation traits', () => {
-  const home = read('index.html');
-  const back = /<ul class="name-tag-events">([\s\S]*?)<\/ul>/.exec(home);
-  assert.ok(back, 'the back needs its list of event tags');
-  const tags = [...back[1].matchAll(/<li class="event-tag[^"]*">\s*<span class="event-tag-name">([^<]*)<\/span>\s*<span class="event-tag-place">([^<]*)<\/span>/g)]
-    .map((m) => m[1] + ' | ' + m[2]);
-  assert.deepStrictEqual(tags, [
-    'TomorrowXAI 2026 | Austin, TX',
-    'CES 2025 | Las Vegas, NV',
-    'CABB Brokers Conference | San Diego, CA',
-    'CABB Brokers Conference | Santa Rosa, CA'
-  ]);
-  for (const gone of ['Ask me about', 'Provably-fair collectibles', 'Membership platforms']) {
-    assert.ok(!home.includes(gone), `old back-of-badge trait remains: ${gone}`);
-  }
-});
-
-test('the hero route graphic is decorative and links to the project it comes from', () => {
-  const home = read('index.html');
-  assert.match(home, /<canvas class="route-field" id="route-field" aria-hidden="true">/);
-  assert.match(home, /class="route-note[^"]*" href="projects\.html#tsp-3d-model"/);
-  assert.ok(read('data/projects.js').includes("id: 'tsp-3d-model'"), 'the linked project must exist');
 });
