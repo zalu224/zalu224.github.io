@@ -136,6 +136,18 @@ a.contact-row:hover .contact-value { color: var(--accent); }
 .contact-arrow { color: var(--accent); transition: transform 200ms ease; }
 a.contact-row:hover .contact-arrow { transform: translateX(4px); }
 
+/* Profile links: one button each, led by the service's own mark. */
+.social-row { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 2rem; }
+.social {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.7rem 1.3rem 0.7rem 1.05rem;
+  transition: transform 200ms ease, box-shadow 200ms ease, color 200ms ease, border-color 200ms ease;
+}
+.social svg { width: 18px; height: 18px; fill: currentColor; flex: none; }
+.social:hover { color: var(--accent); border-color: rgba(31, 63, 212, 0.35); }
+
 /* ---------- reveals ---------- */
 .reveal { opacity: 0; transform: translateY(24px); }
 .reveal.is-visible {
