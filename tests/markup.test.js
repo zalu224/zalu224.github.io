@@ -376,10 +376,10 @@ test('the back of the badge shows conferences attended, not conversation traits'
   const tags = [...back[1].matchAll(/<li class="event-tag[^"]*">\s*<span class="event-tag-name">([^<]*)<\/span>\s*<span class="event-tag-place">([^<]*)<\/span>/g)]
     .map((m) => m[1] + ' | ' + m[2]);
   assert.deepStrictEqual(tags, [
-    'TomorrowXAI 2026 | Austin, TX',
-    'CES 2025 | Las Vegas, NV',
-    'CABB 2026 | San Diego, CA',
-    'CABB 2025 | Santa Rosa, CA'
+    'TomorrowX Summit &rsquo;26 | Austin, TX',
+    'CES &rsquo;25 | Las Vegas, NV',
+    'CABB &rsquo;26 | San Diego, CA',
+    'CABB &rsquo;25 | Santa Rosa, CA'
   ]);
   for (const gone of ['Ask me about', 'Provably-fair collectibles', 'Membership platforms']) {
     assert.ok(!home.includes(gone), `old back-of-badge trait remains: ${gone}`);
