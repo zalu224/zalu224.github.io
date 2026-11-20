@@ -269,12 +269,10 @@
     var ctx = canvas.getContext('2d');
     if (!ctx) { return; }
 
-    var note = document.getElementById('route-note-text');
     var avoid = hero.querySelector ? hero.querySelector('.hero-name') : null;
     var STEP_MS = 60;
     var GLOW_MS = 700;
     var tour = null;
-    var startLength = 0;
     var fresh = [];
     var solved = false;
     var raf = 0;
@@ -324,17 +322,8 @@
       canvas.height = Math.round(height * ratio);
       ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
       tour = Core.createTour(scatter());
-      startLength = tour.length();
       fresh = [];
       solved = false;
-    }
-
-    function report() {
-      if (!note || !startLength) { return; }
-      var saved = Math.round((1 - tour.length() / startLength) * 100);
-      note.textContent = solved
-        ? tour.points.length + ' stops, route ' + saved + '% shorter after 2-opt'
-        : 'Untangling ' + tour.points.length + ' stops: ' + saved + '% shorter';
     }
 
     function draw(now) {
@@ -387,7 +376,6 @@
         } else {
           solved = true;
         }
-        report();
       }
       draw(now);
       if (!solved || fresh.length) { raf = requestAnimationFrame(frame); }
@@ -396,7 +384,6 @@
     function solveNow() {
       while (tour.improve()) { /* run to the 2-opt optimum */ }
       solved = true;
-      report();
       draw(0);
     }
 
@@ -405,7 +392,6 @@
     if (prefersReducedMotion()) {
       solveNow();
     } else {
-      report();
       draw(0);
       // Hold the tangle for a beat so the untangling reads as a change.
       setTimeout(function () { raf = requestAnimationFrame(frame); }, 700);
