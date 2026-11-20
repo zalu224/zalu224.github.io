@@ -302,7 +302,7 @@ test('the hero bio line is spaced into its own lines, with no trailing "actually
     'Technical Product Manager with an engineering core',
     'M.S. Computer Science (AI) at USC',
     'Boston University CS &rsquo;25.',
-    'I turn ML and engineering depth into products.'
+    'I turn AI and ideas into systems and products.'
   ]);
   assert.ok(!/actually use/.test(home), 'the trailing "people actually use" phrase should be dropped');
 
